@@ -93,7 +93,6 @@ function onTLSaveBtnClick() {
     const saved = loadSavedTLState();
     if (saved) {
       trafficLights = saved;
-      trafficLights.forEach((_, i) => { carInZone[i] = false; });
       renderTLList();
       draw();
     }
@@ -104,7 +103,6 @@ function onTLSaveBtnClick() {
   }
   _defaultTLSnap = trafficLights;
   trafficLights  = buildDefaultTLs();
-  trafficLights.forEach((_, i) => { carInZone[i] = false; });
   renderTLList();
   draw();
   tlShowingDefault = true;
@@ -120,7 +118,6 @@ function onTLClearBtnClick() {
       tlShowingDefault = false;
       _defaultTLSnap   = null;
       trafficLights    = buildDefaultTLs();
-      trafficLights.forEach((_, i) => { carInZone[i] = false; });
       renderTLList();
       draw();
       updateTLButtons();
@@ -299,25 +296,24 @@ function drawTL(tl, i) {
       const pB = worldToScreen(tl.areaX2, tl.areaY1);
       const pC = worldToScreen(tl.areaX2, tl.areaY2);
       const pD = worldToScreen(tl.areaX1, tl.areaY2);
-      const active = carInZone[i];
 
       ctx.save();
-      ctx.globalAlpha = active ? 0.30 : 0.12;
+      ctx.globalAlpha = 0.12;
       ctx.fillStyle   = col;
       ctx.beginPath();
       ctx.moveTo(pA.x, pA.y); ctx.lineTo(pB.x, pB.y);
       ctx.lineTo(pC.x, pC.y); ctx.lineTo(pD.x, pD.y);
       ctx.closePath(); ctx.fill();
 
-      ctx.globalAlpha  = active ? 1 : 0.55;
+      ctx.globalAlpha  = 0.55;
       ctx.strokeStyle  = col;
-      ctx.lineWidth    = active ? 2 : 1;
+      ctx.lineWidth    = 1;
       ctx.stroke();
       ctx.restore();
 
       // Diagonal dashed P1→P2
-      ctx.strokeStyle = active ? col + 'cc' : col + '66';
-      ctx.lineWidth   = active ? 2 : 1.5;
+      ctx.strokeStyle = col + '66';
+      ctx.lineWidth   = 1.5;
       ctx.setLineDash([4, 3]);
       ctx.beginPath(); ctx.moveTo(pA.x, pA.y); ctx.lineTo(pC.x, pC.y); ctx.stroke();
       ctx.setLineDash([]);

@@ -26,9 +26,7 @@ function draw() {
   drawZones();
 
   if (activeContext === 'tl') {
-    if (showPath) drawPath();
     trafficLights.forEach((tl, i) => drawTL(tl, i));
-    drawAllCars();
   }
 }
 
@@ -79,11 +77,6 @@ canvas.addEventListener('mousedown', e => {
     return;
   }
 
-  if (mode === 'spawn') {
-    spawnCarAtCursor(w.x, w.y);
-    return;
-  }
-
   if (mode === 'zone-poly') {
     if (!drawingZone) drawingZone = { type: 'poly', points: [] };
     drawingZone.points.push({ x: w.x, y: w.y });
@@ -98,7 +91,7 @@ canvas.addEventListener('mousedown', e => {
     return;
   }
 
-  // Zone corner drag (both path and tl modes)
+  // Zone corner drag
   if (showZones) {
     const ph = hitTestZonePoints(e.offsetX, e.offsetY);
     if (ph) {
@@ -131,27 +124,6 @@ canvas.addEventListener('mousedown', e => {
       saveTLState();
     }
     return;
-  }
-
-  if (mode === 'path') {
-    let hit = false;
-    trafficLights.forEach((tl, i) => {
-      const s = worldToScreen(tl.x, tl.y);
-      if (Math.hypot(e.offsetX - s.x, e.offsetY - s.y) < 12) {
-        draggingTL  = i;
-        dragOff     = { dx: e.offsetX - s.x, dy: e.offsetY - s.y };
-        selectedIdx = i;
-        hit         = true;
-        renderTLList();
-        scrollToTL(i);
-        draw();
-      }
-    });
-    if (!hit) {
-      isDrawingPath = true;
-      pathPoints.push(w);
-      draw();
-    }
   }
 });
 
@@ -187,16 +159,6 @@ canvas.addEventListener('mousemove', e => {
     return;
   }
 
-  if (isDrawingPath) {
-    const w    = screenToWorld(e.offsetX, e.offsetY);
-    const last = pathPoints[pathPoints.length - 1];
-    if (Math.hypot(w.x - last.x, w.y - last.y) > 3 / viewScale) {
-      pathPoints.push(w);
-      draw();
-    }
-    return;
-  }
-
   // Hover info
   let hovered = false;
   trafficLights.forEach((tl, i) => {
@@ -210,16 +172,14 @@ canvas.addEventListener('mousemove', e => {
   if (!hovered) {
     const w = screenToWorld(e.offsetX, e.offsetY);
     const modeHints = {
-      path:  `Путь · точек: ${pathPoints.length} · x:${w.x.toFixed(1)} y:${w.y.toFixed(1)}`,
-      tl:    `Светофор · ЛКМ — добавить/перетащить · x:${w.x.toFixed(1)} y:${w.y.toFixed(1)}`,
-      spawn: `Машина · ЛКМ — поставить на путь · машин: ${cars.length} · x:${w.x.toFixed(1)} y:${w.y.toFixed(1)}`,
-      pan:   `Панорама · x:${w.x.toFixed(1)} y:${w.y.toFixed(1)}`,
+      tl:  `Светофор · ЛКМ — добавить/перетащить · x:${w.x.toFixed(1)} y:${w.y.toFixed(1)}`,
+      pan: `Панорама · x:${w.x.toFixed(1)} y:${w.y.toFixed(1)}`,
     };
     setInfo(modeHints[mode] ?? `x:${w.x.toFixed(1)} y:${w.y.toFixed(1)}`);
   }
 
   // Cursor for zone point handles
-  if (!draggingTL && !isDrawingPath && !isPanning && showZones) {
+  if (!draggingTL && !isPanning && showZones) {
     const ph = hitTestZonePoints(e.offsetX, e.offsetY);
     canvas.style.cursor = ph ? 'grab' : (mode === 'pan' ? 'grab' : mode === 'tl' ? 'cell' : 'crosshair');
     if (ph) setInfo(`P${ph.point} TL#${ph.tlIdx} — тяни чтобы изменить зону`);
@@ -240,7 +200,6 @@ canvas.addEventListener('mouseup', e => {
   const wasDraggingPoint = draggingPoint !== null;
 
   isPanning     = false;
-  isDrawingPath = false;
   draggingTL    = null;
   draggingPoint = null;
 
@@ -272,7 +231,6 @@ viewY     =  (canvas.height / 2) / viewScale;
 // 3. Load data
 const _saved = loadSavedTLState();
 trafficLights = (_saved && _saved.length > 0) ? _saved : buildDefaultTLs();
-trafficLights.forEach((_, i) => { carInZone[i] = false; });
 selectedIdx = 0;
 renderTLList();
 updateTLButtons();
@@ -291,4 +249,4 @@ mapImg.src    = 'assets/Map.png';
 
 // 6. Initial draw (renders grid + TLs while map may still be loading)
 draw();
-setInfo('1-путь  2-светофор  4-машина  3-панорама  M-карта  Пробел-старт/стоп  C-очистить путь');
+setInfo('1-светофор  2-панорама  M-карта');

@@ -80,7 +80,6 @@ function doImport() {
   }
 
   trafficLights = imported;
-  trafficLights.forEach((_, i) => { carInZone[i] = false; });
   selectedIdx = 0;
   renderTLList();
   draw();

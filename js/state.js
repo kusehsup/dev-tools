@@ -40,12 +40,11 @@ let viewY     = -500;
 let viewScale = 0.5;
 
 // --- Interaction ---
-let mode          = 'path'; // 'path' | 'tl' | 'zone-poly' | 'zone-rect' | 'pan' | 'cal'
+let mode          = 'tl'; // 'tl' | 'zone-poly' | 'zone-rect' | 'pan' | 'cal'
 let activeContext = 'tl';   // 'tl' | 'zones'
 
 let isPanning     = false;
 let panStart      = null;
-let isDrawingPath = false;
 let draggingTL    = null;
 let dragOff       = null;
 let draggingPoint = null;   // { tlIdx, point }
@@ -54,45 +53,12 @@ let draggingPoint = null;   // { tlIdx, point }
 let showMap    = true;
 let showZones  = true;
 let showAngles = true;
-let showPath   = true;
 
 // --- Traffic lights ---
 let trafficLights    = [];
 let selectedIdx      = null;
 let tlShowingDefault = false;
 let _defaultTLSnap   = null;
-
-// --- Paths ---
-// Multiple named paths: { id, name, color, points[] }
-let paths          = [];
-let activePathId   = null;   // which path is being drawn
-let drawingPathNow = false;  // mouse-drag flag
-
-// Legacy single-path alias (kept for backward compat with old canvas handlers)
-// Redirected in simulation.js
-let pathPoints = [];
-
-// --- Simulation ---
-let simRunning    = false;
-let simLastTime   = 0;       // DOMHighResTimeStamp for delta-time
-
-// cars[]: active vehicle instances
-// { id, pathId, seg, t, pos, angle, speed, state, inZone, color, name, fines, braking }
-// state: 'running' | 'waiting' | 'done'
-let cars = [];
-let nextCarId = 0;
-
-// TL live phase state (driven by real time during sim)
-// tlPhase[i] = { status, timer }
-let tlPhase = [];
-
-// Legacy single-car aliases (still used by drawCar / old log checks)
-let carPos    = null;
-let carAngle  = 0;
-let carInZone = {};
-
-// --- Log ---
-let logEntries = [];
 
 // --- Zones ---
 let zones            = [];

@@ -14,7 +14,7 @@ function setMode(m) {
   const btn = document.getElementById('mode-' + m);
   if (btn) btn.classList.add('active');
 
-  const cursors = { pan: 'grab', tl: 'cell', cal: 'crosshair', spawn: 'copy' };
+  const cursors = { pan: 'grab', tl: 'cell', cal: 'crosshair' };
   canvas.style.cursor = cursors[m] || 'crosshair';
 
   document.getElementById('cal-panel').classList.toggle('open', m === 'cal');
@@ -22,15 +22,15 @@ function setMode(m) {
 
 // --- Tabs ---
 function switchTab(t) {
-  const tabs = ['tl', 'zones', 'log'];
+  const tabs = ['tl', 'zones'];
   document.querySelectorAll('.tab-btn').forEach((b, i) => b.classList.toggle('active', tabs[i] === t));
   document.querySelectorAll('.tab-panel').forEach((p, i) => p.classList.toggle('active', tabs[i] === t));
 
-  const isTL    = t === 'tl'    || (t === 'log' && activeContext === 'tl');
-  const isZones = t === 'zones' || (t === 'log' && activeContext === 'zones');
+  const isTL    = t === 'tl';
+  const isZones = t === 'zones';
 
   // Show/hide mode buttons based on context
-  ['mode-path','mode-tl','mode-spawn'].forEach(id => {
+  ['mode-tl'].forEach(id => {
     const el = document.getElementById(id);
     if (el) el.style.display = isTL ? '' : 'none';
   });
@@ -40,30 +40,27 @@ function switchTab(t) {
   });
 
   // TL-only controls
-  ['sep-sim','sep-sim2','btn-run','btn-stop','btn-reset',
-   'lbl-speed','car-speed','sim-stats','tl-toggles'].forEach(id => {
+  ['tl-toggles'].forEach(id => {
     const el = document.getElementById(id);
     if (el) el.style.display = isTL ? '' : 'none';
   });
 
   if (t === 'tl') {
     activeContext = 'tl';
-    if (['zone-poly', 'zone-rect'].includes(mode)) setMode('path');
+    if (['zone-poly', 'zone-rect'].includes(mode)) setMode('tl');
     drawingZone = null;
   } else if (t === 'zones') {
     activeContext = 'zones';
-    if (['path', 'tl'].includes(mode)) setMode('pan');
-    stopSimulation();
+    if (['tl'].includes(mode)) setMode('pan');
   }
 
   draw();
 }
 
 // --- Visibility toggles ---
-function toggleMap()     { showMap    = !showMap;    document.getElementById('btn-map').classList.toggle('on', showMap);         draw(); }
-function toggleZones()   { showZones  = !showZones;  document.getElementById('btn-zones').classList.toggle('on', showZones);     draw(); }
-function toggleAngles()  { showAngles = !showAngles; document.getElementById('btn-angles').classList.toggle('on', showAngles);   draw(); }
-function togglePathVis() { showPath   = !showPath;   document.getElementById('btn-path-vis').classList.toggle('on', showPath);   draw(); }
+function toggleMap()    { showMap    = !showMap;    document.getElementById('btn-map').classList.toggle('on', showMap);     draw(); }
+function toggleZones()  { showZones  = !showZones;  document.getElementById('btn-zones').classList.toggle('on', showZones); draw(); }
+function toggleAngles() { showAngles = !showAngles; document.getElementById('btn-angles').classList.toggle('on', showAngles); draw(); }
 
 // --- Toast ---
 function showToast(msg, duration = 1800) {
@@ -99,13 +96,9 @@ window.addEventListener('keydown', e => {
   const tag = document.activeElement.tagName;
   if (['INPUT', 'TEXTAREA', 'SELECT'].includes(tag)) return;
 
-  if (e.key === '1') setMode('path');
-  if (e.key === '2') setMode('tl');
-  if (e.key === '3') setMode('pan');
-  if (e.key === '4') setMode('spawn');
+  if (e.key === '1') setMode('tl');
+  if (e.key === '2') setMode('pan');
   if (e.key === 'm' || e.key === 'M') toggleMap();
-  if (e.key === ' ')  { simRunning ? stopSimulation() : runSimulation(); e.preventDefault(); }
-  if (e.key === 'c' && !e.ctrlKey) clearPath();
 
   if ((e.key === 'Delete' || e.key === 'Backspace') && selectedIdx !== null) {
     confirmRemoveTL(selectedIdx);

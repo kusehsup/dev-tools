@@ -1,0 +1,9 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(ssh -o StrictHostKeyChecking=no -o ConnectTimeout=10 root@5.129.227.157 \"echo 'Connected successfully'\")",
+      "Bash(winget install *)",
+      "Bash(py --version)"
+    ]
+  }
+}
