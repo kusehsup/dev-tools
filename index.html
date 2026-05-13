@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Hassle Dev Tools</title>
+  <link rel="stylesheet" href="css/base.css">
+  <link rel="stylesheet" href="css/layout.css">
+  <link rel="stylesheet" href="css/components.css">
+</head>
+<body>
+
+<div id="app">
+
+  <!-- ===================== SIDEBAR ===================== -->
+  <div id="sidebar">
+    <div id="sidebar-tabs">
+      <button class="tab-btn active" onclick="switchTab('tl')">Светофоры</button>
+      <button class="tab-btn"        onclick="switchTab('zones')">Зоны</button>
+      <button class="tab-btn"        onclick="switchTab('log')">Лог</button>
+    </div>
+
+    <!-- Traffic Lights tab -->
+    <div class="tab-panel active" id="tab-tl">
+      <div id="tl-list"></div>
+      <div class="sidebar-footer">
+        <button class="btn"            onclick="addTrafficLight()">+ Светофор</button>
+        <button class="btn btn-purple" onclick="openImport()">⬆ Импорт</button>
+        <button class="btn btn-yellow" onclick="exportTLPwn()">⬇ Экспорт</button>
+        <button class="btn btn-yellow" id="btn-tl-saved" onclick="onTLSaveBtnClick()">💾 Сохранить</button>
+        <button class="btn btn-red"    id="btn-tl-clear" onclick="onTLClearBtnClick()" style="display:none">🗑 Очистить</button>
+      </div>
+    </div>
+
+    <!-- Zones tab -->
+    <div class="tab-panel" id="tab-zones">
+      <div id="zone-list"></div>
+      <div class="sidebar-footer">
+        <button class="btn btn-green" onclick="startZonePoly()">+ Полигон</button>
+        <button class="btn btn-green" onclick="startZoneRect()">+ Прямоугольник</button>
+        <button class="btn btn-blue"  onclick="exportAllZones()">Экспорт всех</button>
+        <button class="btn btn-green" id="btn-green-zones" onclick="toggleGreenZones()">🌿 GreenZones</button>
+      </div>
+    </div>
+
+    <!-- Log tab -->
+    <div class="tab-panel" id="tab-log">
+      <div id="log-panel">
+        <div class="log-entry log-info">Лог появится после симуляции.</div>
+      </div>
+      <div class="sidebar-footer">
+        <button class="btn" onclick="clearLog()">Очистить лог</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===================== CANVAS AREA ===================== -->
+  <div id="canvas-area">
+
+    <!-- Topbar -->
+    <div id="topbar">
+      <span style="color:var(--text-tertiary);font-size:11px">Режим:</span>
+      <button class="mode-btn active" id="mode-path"      onclick="setMode('path')">✏ Путь</button>
+      <button class="mode-btn"        id="mode-tl"        onclick="setMode('tl')">🚦 TL</button>
+      <button class="mode-btn"        id="mode-spawn"     onclick="setMode('spawn')">🚗 Машина</button>
+      <button class="mode-btn"        id="mode-zone-poly" onclick="startZonePoly()">⬡ Полигон</button>
+      <button class="mode-btn"        id="mode-zone-rect" onclick="startZoneRect()">▭ Rect</button>
+      <button class="mode-btn"        id="mode-pan"       onclick="setMode('pan')">✋ Пан</button>
+
+      <div class="sep" id="sep-sim"></div>
+
+      <!-- Simulation controls -->
+      <button class="btn btn-green"  id="btn-run"   onclick="runSimulation()"  style="padding:4px 10px">▶ Старт</button>
+      <button class="btn"            id="btn-stop"  onclick="stopSimulation()" style="padding:4px 10px">■ Стоп</button>
+      <button class="btn btn-red"    id="btn-reset" onclick="resetSimulation()" style="padding:4px 10px">↺ Сброс</button>
+      <button class="btn btn-orange"                onclick="clearPath()"       style="padding:4px 10px">✕ Путь</button>
+      <button class="btn"                           onclick="removeLastCar()"   style="padding:4px 10px">− Машина</button>
+
+      <div class="sep" id="sep-sim2"></div>
+      <label id="lbl-speed">×Скорость</label>
+      <input type="number" id="car-speed" value="2" min="0.5" max="20" step="0.5">
+
+      <div class="sep"></div>
+      <span id="sim-stats" style="font-size:11px;color:var(--text-secondary);white-space:nowrap;font-family:var(--font-mono)">Машин: 0 | Штрафов: 0</span>
+
+      <div class="sep"></div>
+      <button class="toggle on" id="btn-map"      onclick="toggleMap()">Карта</button>
+      <span id="tl-toggles">
+        <button class="toggle on" id="btn-zones"    onclick="toggleZones()">Зоны</button>
+        <button class="toggle on" id="btn-angles"   onclick="toggleAngles()">Углы</button>
+        <button class="toggle on" id="btn-path-vis" onclick="togglePathVis()">Путь</button>
+      </span>
+
+      <div class="sep"></div>
+      <button class="mode-btn cal" id="mode-cal" onclick="setMode('cal')">⊕ Кал</button>
+    </div>
+
+    <!-- Canvas -->
+    <div id="canvas-wrap">
+      <canvas id="canvas"></canvas>
+
+      <!-- Calibration panel -->
+      <div id="cal-panel">
+        <h4>⊕ Калибровка карты</h4>
+        <p>Кликни на карте → введи реальные игровые координаты этой точки. Нужно минимум 2 точки.</p>
+        <div id="cal-points"></div>
+        <button id="cal-apply-btn" onclick="applyCalibration()" disabled>
+          Применить (нужно ≥2 точек)
+        </button>
+        <div id="cal-result"></div>
+        <div id="cal-params"></div>
+      </div>
+    </div>
+
+    <!-- Info bar -->
+    <div id="info-bar">Нарисуй путь (ЛКМ) → нажми ▶ Запуск</div>
+  </div>
+
+</div><!-- #app -->
+
+<!-- ===================== TOAST ===================== -->
+<div id="toast"></div>
+
+<!-- ===================== EXPORT MODAL ===================== -->
+<div class="modal-overlay" id="export-overlay">
+  <div class="modal-box" id="export-box">
+    <div class="modal-title" id="export-title">Экспорт</div>
+    <textarea class="code-textarea" id="export-textarea" readonly onclick="this.select()"></textarea>
+    <div class="modal-actions">
+      <button class="btn btn-accent" onclick="copyExport()">Скопировать</button>
+      <button class="btn"            onclick="closeExportModal()">Закрыть</button>
+    </div>
+  </div>
+</div>
+
+<!-- ===================== CONFIRM MODAL ===================== -->
+<div class="modal-overlay" id="confirm-overlay">
+  <div class="modal-box" id="confirm-box">
+    <div class="modal-title" id="confirm-msg">Удалить?</div>
+    <div class="modal-actions">
+      <button class="btn btn-red"    onclick="confirmYes()">Удалить</button>
+      <button class="btn"            onclick="confirmNo()">Отмена</button>
+    </div>
+  </div>
+</div>
+
+<!-- ===================== IMPORT MODAL ===================== -->
+<div class="modal-overlay" id="import-overlay">
+  <div class="modal-box" id="import-box">
+    <div class="modal-title">Импорт из trafic_lights.pwn</div>
+    <div class="modal-subtitle">
+      Вставь содержимое файла <code>trafic_lights.pwn</code> (или только блок
+      <code>g_traffic_lights_info[…] = { … };</code>):
+    </div>
+    <textarea class="code-textarea" id="import-textarea" placeholder="Вставь текст .pwn сюда..."></textarea>
+    <div id="import-result"></div>
+    <div class="modal-actions">
+      <button class="btn btn-accent" onclick="doImport()">Импортировать</button>
+      <button class="btn"            onclick="closeImport()">Отмена</button>
+    </div>
+  </div>
+</div>
+
+<!-- ===================== SCRIPTS ===================== -->
+<!--
+  Load order matters — each file depends on symbols from previous ones:
+  state → map → traffic-lights → simulation → zones → import-export → ui → canvas (init)
+-->
+<script src="js/state.js"></script>
+<script src="js/map.js"></script>
+<script src="js/traffic-lights.js"></script>
+<script src="js/simulation.js"></script>
+<script src="js/zones.js"></script>
+<script src="js/import-export.js"></script>
+<script src="js/ui.js"></script>
+<script src="js/canvas.js"></script>
+
+</body>
+</html>

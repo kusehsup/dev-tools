@@ -1,0 +1,391 @@
+/* ============================================================
+   COMPONENTS — buttons, inputs, cards, badges, log, cal rows
+   ============================================================ */
+
+/* ---- Buttons ---- */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--sp-1);
+  padding: 5px 12px;
+  border-radius: var(--r-sm);
+  border: 1px solid var(--border-soft);
+  background: var(--bg-elevated);
+  color: var(--text-secondary);
+  font-family: var(--font-ui);
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background var(--duration-fast), color var(--duration-fast), border-color var(--duration-fast);
+  line-height: 1;
+}
+
+.btn:hover {
+  background: var(--bg-hover);
+  color: var(--text-primary);
+  border-color: var(--border-focus);
+}
+
+/* Variants */
+.btn-accent {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: #fff;
+}
+.btn-accent:hover { background: var(--accent-hover); border-color: var(--accent-hover); color: #fff; }
+
+.btn-green  { border-color: var(--green);  color: var(--green);  }
+.btn-green:hover  { background: var(--green-dim);  color: var(--green);  border-color: var(--green); }
+
+.btn-red    { border-color: var(--red);    color: var(--red);    }
+.btn-red:hover    { background: var(--red-dim);    color: var(--red);    border-color: var(--red); }
+
+.btn-yellow { border-color: var(--yellow); color: var(--yellow); }
+.btn-yellow:hover { background: var(--yellow-dim); color: var(--yellow); border-color: var(--yellow); }
+
+.btn-orange { border-color: var(--orange); color: var(--orange); }
+.btn-orange:hover { background: var(--orange-dim); color: var(--orange); border-color: var(--orange); }
+
+.btn-purple { border-color: var(--purple); color: var(--purple); }
+.btn-purple:hover { background: var(--purple-dim); color: var(--purple); border-color: var(--purple); }
+
+.btn-blue   { border-color: #4488cc; color: #4488cc; }
+.btn-blue:hover   { background: rgba(68,136,204,0.15); color: #4488cc; }
+
+/* Icon-only small remove button */
+.btn-remove {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 22px;
+  border-radius: var(--r-xs);
+  border: none;
+  background: transparent;
+  color: var(--text-tertiary);
+  cursor: pointer;
+  font-size: 12px;
+  transition: background var(--duration-fast), color var(--duration-fast);
+  flex-shrink: 0;
+}
+.btn-remove:hover { background: var(--red-dim); color: var(--red); }
+
+/* ---- Mode / Toggle buttons (topbar) ---- */
+.mode-btn {
+  padding: 4px 10px;
+  border-radius: var(--r-sm);
+  border: 1px solid var(--border-soft);
+  background: transparent;
+  color: var(--text-secondary);
+  font-family: var(--font-ui);
+  font-size: 12px;
+  cursor: pointer;
+  transition: background var(--duration-fast), color var(--duration-fast), border-color var(--duration-fast);
+  white-space: nowrap;
+}
+.mode-btn:hover { color: var(--text-primary); background: var(--bg-elevated); }
+.mode-btn.active {
+  background: var(--accent-dim);
+  border-color: var(--accent);
+  color: #a0aaff;
+}
+
+.mode-btn.cal        { border-color: var(--yellow); color: var(--yellow); }
+.mode-btn.cal:hover  { background: var(--yellow-dim); }
+.mode-btn.cal.active { background: var(--yellow-dim); border-color: var(--yellow); color: var(--yellow); }
+
+.toggle {
+  padding: 4px 10px;
+  border-radius: var(--r-full);
+  border: 1px solid var(--border-soft);
+  background: transparent;
+  color: var(--text-tertiary);
+  font-family: var(--font-ui);
+  font-size: 11px;
+  cursor: pointer;
+  transition: all var(--duration-fast);
+}
+.toggle.on {
+  background: var(--bg-elevated);
+  border-color: var(--border-focus);
+  color: var(--text-primary);
+}
+
+/* ---- Inputs ---- */
+.field-input {
+  width: 100%;
+  background: var(--bg-base);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--r-xs);
+  color: var(--text-primary);
+  font-family: var(--font-ui);
+  font-size: 12px;
+  padding: 4px 6px;
+  outline: none;
+  transition: border-color var(--duration-fast);
+}
+.field-input:focus { border-color: var(--border-focus); }
+
+.field-label {
+  display: block;
+  font-size: 10px;
+  color: var(--text-tertiary);
+  margin-bottom: 3px;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.field { flex: 1; min-width: 0; }
+
+/* ---- TL Card ---- */
+.tl-card {
+  background: var(--bg-elevated);
+  border-radius: var(--r-md);
+  padding: var(--sp-3);
+  border: 1.5px solid transparent;
+  cursor: pointer;
+  transition: border-color var(--duration-fast), background var(--duration-fast);
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-2);
+}
+.tl-card:hover { background: var(--bg-overlay); }
+.tl-card.selected {
+  border-color: var(--accent);
+  background: var(--bg-overlay);
+}
+
+.tl-card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.tl-card-title {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.tl-status-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 2px 8px;
+  border-radius: var(--r-full);
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+}
+
+.tl-card-row {
+  display: flex;
+  gap: var(--sp-2);
+}
+
+/* ---- Zone Card ---- */
+.zone-card {
+  background: var(--bg-elevated);
+  border-radius: var(--r-md);
+  padding: var(--sp-3);
+  border: 1.5px solid transparent;
+  cursor: pointer;
+  transition: border-color var(--duration-fast), background var(--duration-fast);
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-2);
+}
+.zone-card:hover { background: var(--bg-overlay); }
+.zone-card.selected { border-color: var(--accent); background: var(--bg-overlay); }
+
+.zone-card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.zone-card-title {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-2);
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.zone-color-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.zone-card-meta {
+  font-size: 11px;
+  color: var(--text-secondary);
+  font-family: var(--font-mono);
+}
+
+.zone-export-btn {
+  padding: 3px 8px;
+  border-radius: var(--r-xs);
+  border: 1px solid var(--border-soft);
+  background: transparent;
+  color: var(--text-secondary);
+  font-family: var(--font-ui);
+  font-size: 10px;
+  cursor: pointer;
+  transition: all var(--duration-fast);
+}
+.zone-export-btn:hover { background: var(--bg-hover); color: var(--text-primary); }
+
+.color-swatch-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+}
+
+.color-swatch {
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  cursor: pointer;
+  border: 2px solid transparent;
+  transition: transform var(--duration-fast), border-color var(--duration-fast);
+}
+.color-swatch:hover { transform: scale(1.2); }
+.color-swatch.active { border-color: rgba(255,255,255,0.8); }
+
+/* ---- Log entries ---- */
+.log-entry {
+  padding: 5px 8px;
+  border-radius: var(--r-xs);
+  border-left: 2.5px solid transparent;
+  line-height: 1.5;
+}
+.log-fine   { background: var(--red-dim);    border-color: var(--red);    color: #ffaaaa; }
+.log-ok     { background: var(--green-dim);  border-color: var(--green);  color: #aaffaa; }
+.log-info   { background: var(--accent-dim); border-color: var(--accent); color: #aaccff; }
+.log-enter  { background: var(--purple-dim); border-color: var(--purple); color: #ccaaff; }
+
+/* ---- Calibration row ---- */
+.cal-row {
+  background: var(--bg-overlay);
+  border-radius: var(--r-sm);
+  padding: var(--sp-2) var(--sp-3);
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-2);
+  border: 1px solid var(--border-subtle);
+  transition: border-color var(--duration-fast);
+}
+.cal-row.active { border-color: var(--yellow); }
+
+.cal-row-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.cal-row-header span {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--yellow);
+}
+
+.cal-coords-grid {
+  display: grid;
+  grid-template-columns: auto 1fr auto 1fr;
+  gap: var(--sp-1) var(--sp-2);
+  align-items: center;
+}
+.cal-coords-grid label {
+  font-size: 10px;
+  color: var(--text-secondary);
+  white-space: nowrap;
+}
+.cal-coords-grid input {
+  min-width: 0;
+  padding: 2px 5px;
+  font-size: 11px;
+}
+
+#cal-apply-btn {
+  width: 100%;
+  padding: 7px;
+  background: var(--yellow);
+  color: #000;
+  border: none;
+  border-radius: var(--r-sm);
+  cursor: pointer;
+  font-family: var(--font-ui);
+  font-size: 12px;
+  font-weight: 600;
+  transition: opacity var(--duration-fast);
+}
+#cal-apply-btn:disabled {
+  background: var(--bg-overlay);
+  color: var(--text-tertiary);
+  cursor: default;
+}
+
+/* ---- Export / Import textareas ---- */
+.code-textarea {
+  width: 100%;
+  resize: vertical;
+  background: var(--bg-base);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--r-sm);
+  color: #aef;
+  font-family: var(--font-mono);
+  font-size: 12px;
+  padding: var(--sp-3);
+  outline: none;
+  transition: border-color var(--duration-fast);
+}
+.code-textarea:focus { border-color: var(--border-focus); }
+
+#export-textarea { height: 60vh; }
+#import-textarea { height: 220px; color: #cce; }
+
+#import-result {
+  font-size: 11px;
+  color: var(--green);
+  min-height: 16px;
+}
+
+/* ---- Sim stats pill ---- */
+#sim-stats {
+  background: var(--bg-elevated);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--r-full);
+  padding: 3px 10px;
+  font-size: 11px;
+  font-family: var(--font-mono);
+  color: var(--text-secondary);
+  white-space: nowrap;
+}
+
+/* ---- GreenZone extra fields ---- */
+.gz-fields {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--sp-2);
+  margin-top: var(--sp-1);
+}
+
+.gz-checkboxes {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-1);
+  padding-top: var(--sp-1);
+}
+
+.gz-check-label {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-2);
+  font-size: 11px;
+  color: var(--text-secondary);
+  cursor: pointer;
+}

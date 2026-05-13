@@ -1,0 +1,94 @@
+/* ============================================================
+   BASE — reset, custom properties, typography, scrollbar
+   ============================================================ */
+
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+:root {
+  /* --- Palette --- */
+  --bg-base:       #0d0d10;
+  --bg-surface:    #151518;
+  --bg-elevated:   #1c1c21;
+  --bg-overlay:    #242429;
+  --bg-hover:      #2a2a31;
+
+  --border-subtle: rgba(255,255,255,0.06);
+  --border-soft:   rgba(255,255,255,0.10);
+  --border-focus:  rgba(255,255,255,0.22);
+
+  --text-primary:   #f0f0f5;
+  --text-secondary: #8e8e9a;
+  --text-tertiary:  #55555f;
+
+  /* --- Accent --- */
+  --accent:        #5e6ad2;
+  --accent-hover:  #7077e0;
+  --accent-dim:    rgba(94,106,210,0.18);
+
+  --green:         #3db76a;
+  --green-dim:     rgba(61,183,106,0.15);
+  --yellow:        #e8a020;
+  --yellow-dim:    rgba(232,160,32,0.15);
+  --red:           #d95555;
+  --red-dim:       rgba(217,85,85,0.15);
+  --orange:        #e07832;
+  --orange-dim:    rgba(224,120,50,0.15);
+  --purple:        #9b72e8;
+  --purple-dim:    rgba(155,114,232,0.18);
+
+  /* TL status colors */
+  --tl-green:      #3db76a;
+  --tl-yellow:     #e8a020;
+  --tl-red:        #d95555;
+  --tl-yellow-red: #e07832;
+
+  /* --- Geometry --- */
+  --r-xs:   6px;
+  --r-sm:   10px;
+  --r-md:   14px;
+  --r-lg:   18px;
+  --r-xl:   24px;
+  --r-full: 9999px;
+
+  /* --- Spacing (8pt grid) --- */
+  --sp-1:  4px;
+  --sp-2:  8px;
+  --sp-3:  12px;
+  --sp-4:  16px;
+  --sp-5:  20px;
+  --sp-6:  24px;
+  --sp-8:  32px;
+
+  /* --- Typography --- */
+  --font-ui:   -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Segoe UI Variable', 'Segoe UI', system-ui, sans-serif;
+  --font-mono: 'SF Mono', 'Cascadia Code', 'Fira Code', 'Consolas', monospace;
+
+  /* --- Motion --- */
+  --ease-out:   cubic-bezier(0.16, 1, 0.3, 1);
+  --duration-fast: 120ms;
+  --duration-base: 200ms;
+}
+
+html, body {
+  height: 100%;
+  overflow: hidden;
+}
+
+body {
+  background: var(--bg-base);
+  color: var(--text-primary);
+  font-family: var(--font-ui);
+  font-size: 13px;
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* --- Scrollbar --- */
+::-webkit-scrollbar        { width: 4px; height: 4px; }
+::-webkit-scrollbar-track  { background: transparent; }
+::-webkit-scrollbar-thumb  { background: var(--bg-overlay); border-radius: var(--r-full); }
+::-webkit-scrollbar-thumb:hover { background: var(--bg-hover); }
