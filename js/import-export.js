@@ -133,17 +133,10 @@ function exportZone(i, fmt) {
   if (fmt === 'rect') {
     const x1 = Math.min(...xs).toFixed(4), y1 = Math.min(...ys).toFixed(4);
     const x2 = Math.max(...xs).toFixed(4), y2 = Math.max(...ys).toFixed(4);
-    code = `// ${z.name} — прямоугольник\n` +
-      `#define ${name.toUpperCase()}_X1  ${x1}\n` +
-      `#define ${name.toUpperCase()}_Y1  ${y1}\n` +
-      `#define ${name.toUpperCase()}_X2  ${x2}\n` +
-      `#define ${name.toUpperCase()}_Y2  ${y2}\n\n` +
-      `// IsPlayerInArea(playerid, ${x1}, ${y1}, ${x2}, ${y2})`;
+    code = `${x1}, ${y1}, ${x2}, ${y2}`;
   } else {
-    const verts = pts.map((p, j) => `    /* ${j} */ ${p.x.toFixed(4)}, ${p.y.toFixed(4)}`).join(',\n');
-    code = `// ${z.name} — полигон (${pts.length} вершин)\n` +
-      `new Float:${name}_verts[] = {\n${verts}\n};\n` +
-      `#define ${name.toUpperCase()}_COUNT  ${pts.length}`;
+    const verts = pts.map(p => `\t\t${p.x.toFixed(4)}, ${p.y.toFixed(4)}`).join(',\n');
+    code = `{\t// ${z.name}\n${verts}\n\t},`;
   }
 
   openExportModal(`Экспорт: ${z.name}`, code);
