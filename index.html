@@ -38,6 +38,7 @@
         <button class="btn btn-green" onclick="startZonePoly()">+ Полигон</button>
         <button class="btn btn-green" onclick="startZoneRect()">+ Прямоугольник</button>
         <button class="btn btn-blue"  onclick="exportAllZones()">Экспорт всех</button>
+        <button class="btn btn-blue"  onclick="exportAllZonesPwn()">Экспорт .pwn</button>
         <button class="btn btn-green" id="btn-green-zones" onclick="toggleGreenZones()">🌿 GreenZones</button>
       </div>
     </div>
@@ -50,10 +51,10 @@
     <!-- Topbar -->
     <div id="topbar">
       <span style="color:var(--text-tertiary);font-size:11px">Режим:</span>
-      <button class="mode-btn active" id="mode-tl"        onclick="setMode('tl')">🚦 TL</button>
+      <button class="mode-btn active" id="mode-tl"        onclick="setMode('tl')">🚦 Светофоры</button>
       <button class="mode-btn"        id="mode-zone-poly" onclick="startZonePoly()">⬡ Полигон</button>
       <button class="mode-btn"        id="mode-zone-rect" onclick="startZoneRect()">▭ Rect</button>
-      <button class="mode-btn"        id="mode-pan"       onclick="setMode('pan')">✋ Пан</button>
+      <button class="mode-btn"        id="mode-pan"       onclick="setMode('pan')">✋ Панорама</button>
 
       <div class="sep"></div>
       <button class="toggle on" id="btn-map"      onclick="toggleMap()">Карта</button>
@@ -63,7 +64,7 @@
       </span>
 
       <div class="sep"></div>
-      <button class="mode-btn cal" id="mode-cal" onclick="setMode('cal')">⊕ Кал</button>
+      <button class="mode-btn cal" id="mode-cal" onclick="setMode('cal')">⊕ Калибровка</button>
     </div>
 
     <!-- Canvas -->

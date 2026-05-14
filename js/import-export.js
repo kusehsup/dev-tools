@@ -171,6 +171,27 @@ function exportAllZones() {
   openExportModal('Экспорт всех зон', code);
 }
 
+function exportAllZonesPwn() {
+  if (zones.length === 0) { showToast('Нет зон для экспорта'); return; }
+
+  const blocks = zones.map(z => {
+    let pts = z.points;
+    if (z.type === 'rect' && pts.length === 2) {
+      const [a, b] = pts;
+      pts = [
+        { x: a.x, y: a.y },
+        { x: b.x, y: a.y },
+        { x: b.x, y: b.y },
+        { x: a.x, y: b.y },
+      ];
+    }
+    const verts = pts.map(p => `\t\t${p.x.toFixed(4)}, ${p.y.toFixed(4)}`).join(',\n');
+    return `\t{\t// ${z.name}\n${verts}\n\t}`;
+  });
+
+  openExportModal('Экспорт полигонов (.pwn)', blocks.join(',\n'));
+}
+
 function exportGreenZoneSQL(i) {
   const z   = zones[i];
   const pts = z.points;
