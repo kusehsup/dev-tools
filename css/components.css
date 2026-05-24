@@ -389,3 +389,259 @@
   color: var(--text-secondary);
   cursor: pointer;
 }
+
+/* ================================================================
+   ROUTES — bus driver routes panel
+   ================================================================ */
+
+.routes-section-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--sp-2) var(--sp-3);
+  border-bottom: 1px solid var(--border-subtle);
+  background: var(--bg-overlay);
+  flex-shrink: 0;
+}
+.routes-section-title {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-secondary);
+}
+.routes-section-toggles {
+  display: flex;
+  gap: 4px;
+}
+
+/* Route list scrollable container */
+.route-list {
+  overflow-y: auto;
+  flex: 0 0 auto;
+  max-height: 220px;
+  padding: 4px 6px;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  border-bottom: 1px solid var(--border-subtle);
+}
+
+/* Checkpoint list */
+.checkpoint-list {
+  overflow-y: auto;
+  flex: 1 1 0;
+  min-height: 0;
+  padding: 4px 6px;
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
+
+/* ---- Route card ---- */
+.route-card {
+  background: var(--bg-overlay);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--r-sm);
+  overflow: hidden;
+  transition: border-color var(--duration-fast);
+  flex-shrink: 0;
+}
+.route-card.active {
+  border-color: var(--accent);
+}
+.route-card-header {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 5px;
+  cursor: default;
+  min-height: 0;
+}
+.route-card-title {
+  flex: 1;
+  min-width: 0;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  overflow: hidden;
+}
+.route-name {
+  font-size: 11px;
+  color: var(--text-primary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  flex: 1;
+  min-width: 0;
+}
+.route-card-meta {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  cursor: pointer;
+  flex-shrink: 0;
+}
+.route-stat {
+  font-size: 10px;
+  color: var(--text-tertiary);
+  font-family: var(--font-mono);
+  white-space: nowrap;
+}
+.route-stat + .route-stat::before {
+  content: '·';
+  margin-right: 4px;
+  color: var(--text-tertiary);
+}
+.route-stops { color: #e8a020; }
+
+.route-vis-btn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 13px;
+  padding: 0;
+  width: 18px;
+  line-height: 1;
+  flex-shrink: 0;
+  transition: opacity var(--duration-fast);
+}
+.route-vis-btn:hover { opacity: 0.7; }
+
+/* Route type badges */
+.route-badge {
+  display: inline-block;
+  font-size: 9px;
+  font-weight: 700;
+  padding: 1px 4px;
+  border-radius: 6px;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+.route-badge-suburban   { background: rgba(76,175,80,0.2);  color: #4caf50; }
+.route-badge-urban      { background: rgba(33,150,243,0.2); color: #64b5f6; }
+.route-badge-interurban { background: rgba(255,152,0,0.2);  color: #ffb74d; }
+
+/* Route inline editor */
+.route-editor {
+  padding: 6px 8px 8px;
+  border-top: 1px solid var(--border-subtle);
+  background: var(--bg-base);
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-2);
+}
+
+/* ---- Checkpoint rows ---- */
+.cp-list-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 3px 2px 5px;
+  flex-shrink: 0;
+}
+
+.cp-row {
+  background: var(--bg-overlay);
+  border: 1px solid transparent;
+  border-radius: 3px;
+  overflow: hidden;
+  transition: border-color var(--duration-fast);
+  flex-shrink: 0;
+}
+.cp-row.cp-stop {
+  border-color: rgba(232,160,32,0.25);
+}
+.cp-row.cp-selected {
+  border-color: var(--accent);
+}
+.cp-row-main {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 2px 4px;
+  cursor: pointer;
+  height: 22px;
+  overflow: hidden;
+}
+.cp-row-main:hover { background: var(--bg-hover); }
+
+.cp-index {
+  font-size: 10px;
+  color: var(--text-tertiary);
+  font-family: var(--font-mono);
+  width: 28px;
+  flex-shrink: 0;
+  text-align: right;
+}
+.cp-coords {
+  font-size: 10px;
+  color: var(--text-secondary);
+  font-family: var(--font-mono);
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.cp-stop-btn {
+  background: none;
+  border: none;
+  font-size: 11px;
+  cursor: pointer;
+  padding: 0;
+  width: 16px;
+  text-align: center;
+  color: var(--text-tertiary);
+  line-height: 1;
+  flex-shrink: 0;
+}
+.cp-stop-btn.active { color: #e8a020; }
+.cp-stop-btn:hover { opacity: 0.7; }
+
+.cp-storage-badge {
+  font-size: 9px;
+  font-family: var(--font-mono);
+  background: rgba(232,160,32,0.2);
+  color: #e8a020;
+  padding: 1px 4px;
+  border-radius: 3px;
+  flex-shrink: 0;
+  white-space: nowrap;
+}
+
+/* Checkpoint inline editor */
+.cp-editor {
+  padding: 5px 6px 7px;
+  border-top: 1px solid var(--border-subtle);
+  background: var(--bg-base);
+}
+.cp-editor-grid {
+  display: grid;
+  grid-template-columns: 40px 1fr 40px 1fr 52px 1fr;
+  gap: 3px 6px;
+  align-items: center;
+}
+.cp-editor-grid label {
+  font-size: 10px;
+  color: var(--text-secondary);
+  white-space: nowrap;
+  text-align: right;
+}
+.cp-editor-grid input {
+  min-width: 0;
+  padding: 2px 4px;
+  font-size: 11px;
+}
+
+/* field-color swatch inside route editor */
+.field-color {
+  width: 32px;
+  height: 22px;
+  padding: 1px 2px;
+  border: 1px solid var(--border-soft);
+  border-radius: var(--r-xs);
+  background: var(--bg-elevated);
+  cursor: pointer;
+}

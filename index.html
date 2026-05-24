@@ -17,6 +17,7 @@
     <div id="sidebar-tabs">
       <button class="tab-btn active" onclick="switchTab('tl')">Светофоры</button>
       <button class="tab-btn"        onclick="switchTab('zones')">Зоны</button>
+      <button class="tab-btn"        onclick="switchTab('routes')">Маршруты</button>
     </div>
 
     <!-- Traffic Lights tab -->
@@ -43,6 +44,32 @@
       </div>
     </div>
 
+    <!-- Routes tab -->
+    <div class="tab-panel" id="tab-routes">
+
+      <!-- Subsection header -->
+      <div class="routes-section-header">
+        <span class="routes-section-title">🚌 Маршруты автобусника</span>
+        <div class="routes-section-toggles">
+          <button class="toggle on" id="btn-show-routes" onclick="toggleShowRoutes()">Пути</button>
+          <button class="toggle on" id="btn-show-stops"  onclick="toggleShowStops()">Остановки</button>
+        </div>
+      </div>
+
+      <!-- Route list -->
+      <div id="route-list" class="route-list"></div>
+
+      <!-- Checkpoint list -->
+      <div id="checkpoint-list" class="checkpoint-list"></div>
+
+      <div class="sidebar-footer">
+        <button class="btn btn-green"  onclick="addRoute()">+ Маршрут</button>
+        <button class="btn btn-yellow" onclick="exportRouteSQL()">⬇ SQL (выбранный)</button>
+        <button class="btn btn-yellow" onclick="exportAllRoutesSQL()">⬇ SQL (все)</button>
+        <button class="btn btn-red"    onclick="resetRoutesData()">↺ Сброс данных</button>
+      </div>
+    </div>
+
   </div>
 
   <!-- ===================== CANVAS AREA ===================== -->
@@ -61,6 +88,9 @@
       <span id="tl-toggles">
         <button class="toggle on" id="btn-zones"    onclick="toggleZones()">Зоны</button>
         <button class="toggle on" id="btn-angles"   onclick="toggleAngles()">Углы</button>
+      </span>
+      <span id="route-toggles" style="display:none">
+        <button class="toggle on" id="btn-routes-canvas" onclick="toggleBusRoutes()">Маршруты</button>
       </span>
 
       <div class="sep"></div>
@@ -142,6 +172,7 @@
 <script src="js/map.js"></script>
 <script src="js/traffic-lights.js"></script>
 <script src="js/zones.js"></script>
+<script src="js/routes.js"></script>
 <script src="js/import-export.js"></script>
 <script src="js/ui.js"></script>
 <script src="js/canvas.js"></script>

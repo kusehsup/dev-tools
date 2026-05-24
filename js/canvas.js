@@ -28,6 +28,10 @@ function draw() {
   if (activeContext === 'tl') {
     trafficLights.forEach((tl, i) => drawTL(tl, i));
   }
+
+  if (activeContext === 'routes') {
+    drawBusRoutes();
+  }
 }
 
 // --- Mouse handlers ---
@@ -61,6 +65,40 @@ canvas.addEventListener('mousedown', e => {
   if (e.button !== 0) return;
 
   const w = screenToWorld(e.offsetX, e.offsetY);
+
+  // Routes: add checkpoint on click
+  if (activeContext === 'routes' && addingCheckpointMode) {
+    if (selectedRouteIdx !== null && busRoutes[selectedRouteIdx]) {
+      addCheckpoint(busRoutes[selectedRouteIdx].id, w.x, w.y);
+      showToast('Чекпоинт добавлен');
+    }
+    cancelAddCheckpointMode();
+    return;
+  }
+
+  // Routes: click on existing checkpoint to select
+  if (activeContext === 'routes' && mode === 'pan') {
+    let hitCp = null;
+    const visRoutes = busRoutes.filter(r => r.visible);
+    for (const route of visRoutes) {
+      const cps = getRouteCheckpoints(route.id);
+      for (const cp of cps) {
+        const s = worldToScreen(cp.x, cp.y);
+        if (Math.hypot(e.offsetX - s.x, e.offsetY - s.y) < 10) {
+          hitCp = cp;
+          break;
+        }
+      }
+      if (hitCp) break;
+    }
+    if (hitCp) {
+      const ri = busRoutes.findIndex(r => r.id === hitCp.route);
+      selectedRouteIdx = ri;
+      selectCheckpoint(hitCp.id);
+      renderRouteList();
+      return;
+    }
+  }
 
   if (mode === 'pan') {
     if (activeContext === 'zones') {
@@ -237,6 +275,8 @@ updateTLButtons();
 
 zones = loadUserZones();
 renderZoneList();
+
+initRoutesData().then(() => { renderRouteList(); draw(); });
 
 // 4. Hide zone-specific mode buttons (we start on TL tab)
 ['mode-zone-poly','mode-zone-rect'].forEach(id => {

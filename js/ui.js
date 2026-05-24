@@ -22,36 +22,40 @@ function setMode(m) {
 
 // --- Tabs ---
 function switchTab(t) {
-  const tabs = ['tl', 'zones'];
+  const tabs = ['tl', 'zones', 'routes'];
   document.querySelectorAll('.tab-btn').forEach((b, i) => b.classList.toggle('active', tabs[i] === t));
   document.querySelectorAll('.tab-panel').forEach((p, i) => p.classList.toggle('active', tabs[i] === t));
 
-  const isTL    = t === 'tl';
-  const isZones = t === 'zones';
+  const isTL     = t === 'tl';
+  const isZones  = t === 'zones';
+  const isRoutes = t === 'routes';
 
-  // Show/hide mode buttons based on context
-  ['mode-tl'].forEach(id => {
-    const el = document.getElementById(id);
-    if (el) el.style.display = isTL ? '' : 'none';
-  });
-  ['mode-zone-poly','mode-zone-rect'].forEach(id => {
-    const el = document.getElementById(id);
-    if (el) el.style.display = isZones ? '' : 'none';
-  });
+  // Show/hide mode buttons
+  const el_tl       = document.getElementById('mode-tl');
+  const el_poly     = document.getElementById('mode-zone-poly');
+  const el_rect     = document.getElementById('mode-zone-rect');
+  const el_tlToggles = document.getElementById('tl-toggles');
+  const el_rtToggles = document.getElementById('route-toggles');
 
-  // TL-only controls
-  ['tl-toggles'].forEach(id => {
-    const el = document.getElementById(id);
-    if (el) el.style.display = isTL ? '' : 'none';
-  });
+  if (el_tl)        el_tl.style.display        = isTL     ? '' : 'none';
+  if (el_poly)      el_poly.style.display       = isZones  ? '' : 'none';
+  if (el_rect)      el_rect.style.display       = isZones  ? '' : 'none';
+  if (el_tlToggles) el_tlToggles.style.display  = isTL     ? '' : 'none';
+  if (el_rtToggles) el_rtToggles.style.display  = isRoutes ? '' : 'none';
 
   if (t === 'tl') {
     activeContext = 'tl';
     if (['zone-poly', 'zone-rect'].includes(mode)) setMode('tl');
     drawingZone = null;
+    cancelAddCheckpointMode?.();
   } else if (t === 'zones') {
     activeContext = 'zones';
-    if (['tl'].includes(mode)) setMode('pan');
+    if (mode === 'tl') setMode('pan');
+    cancelAddCheckpointMode?.();
+  } else if (t === 'routes') {
+    activeContext = 'routes';
+    if (['tl','zone-poly','zone-rect'].includes(mode)) setMode('pan');
+    drawingZone = null;
   }
 
   draw();
@@ -61,6 +65,22 @@ function switchTab(t) {
 function toggleMap()    { showMap    = !showMap;    document.getElementById('btn-map').classList.toggle('on', showMap);     draw(); }
 function toggleZones()  { showZones  = !showZones;  document.getElementById('btn-zones').classList.toggle('on', showZones); draw(); }
 function toggleAngles() { showAngles = !showAngles; document.getElementById('btn-angles').classList.toggle('on', showAngles); draw(); }
+function toggleBusRoutes() { showBusRoutes = !showBusRoutes; document.getElementById('btn-routes-canvas').classList.toggle('on', showBusRoutes); draw(); }
+function toggleShowRoutes() { showBusRoutes = !showBusRoutes; document.getElementById('btn-show-routes').classList.toggle('on', showBusRoutes); draw(); }
+function toggleShowStops()  { showStops    = !showStops;    document.getElementById('btn-show-stops').classList.toggle('on', showStops);  draw(); }
+
+function resetRoutesData() {
+  showConfirm('Сбросить все данные маршрутов к исходным из SQL?', async () => {
+    localStorage.removeItem('bus_routes_data');
+    localStorage.removeItem('bus_checkpoints_data');
+    selectedRouteIdx     = null;
+    selectedCheckpointId = null;
+    await initRoutesData();
+    renderRouteList();
+    draw();
+    showToast('Данные сброшены');
+  });
+}
 
 // --- Toast ---
 function showToast(msg, duration = 1800) {
@@ -96,6 +116,7 @@ window.addEventListener('keydown', e => {
   const tag = document.activeElement.tagName;
   if (['INPUT', 'TEXTAREA', 'SELECT'].includes(tag)) return;
 
+  if (e.key === 'Escape') { cancelAddCheckpointMode?.(); }
   if (e.key === '1') setMode('tl');
   if (e.key === '2') setMode('pan');
   if (e.key === 'm' || e.key === 'M') toggleMap();

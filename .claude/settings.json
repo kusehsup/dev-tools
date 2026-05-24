@@ -4,7 +4,8 @@
       "Bash(ssh -o StrictHostKeyChecking=no -o ConnectTimeout=10 root@5.129.227.157 \"echo 'Connected successfully'\")",
       "Bash(winget install *)",
       "Bash(py --version)",
-      "Bash(py -c ' *)"
+      "Bash(py -c ' *)",
+      "PowerShell(Get-ChildItem -Path \"c:\\\\Users\\\\Vladislav\\\\Desktop\\\\dev-tools\\\\dev-tools\" -Recurse -Force | Select-Object FullName, @{Name='Type';Expression={if\\($_.PSIsContainer\\){'DIR'}else{'FILE'}}} | Sort-Object FullName | Format-Table -AutoSize)"
     ]
   }
 }
