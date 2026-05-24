@@ -116,8 +116,8 @@ function removeRoute(idx) {
 }
 
 function selectRoute(idx) {
-  // Toggle off if clicking the already-selected route
-  if (selectedRouteIdx === idx) {
+  // Deselect (called from "← Все маршруты" button or same idx)
+  if (idx === null || selectedRouteIdx === idx) {
     selectedRouteIdx     = null;
     selectedCheckpointId = null;
     renderRouteList();
@@ -131,10 +131,10 @@ function selectRoute(idx) {
   renderRouteList();
   renderCheckpointList();
 
-  if (idx !== null && busRoutes[idx]) {
+  // Fit route into view
+  if (busRoutes[idx]) {
     const cps = getRouteCheckpoints(busRoutes[idx].id);
     if (cps.length > 0) {
-      // Fit all checkpoints of this route into view
       const xs = cps.map(c => c.x);
       const ys = cps.map(c => c.y);
       const minX = Math.min(...xs), maxX = Math.max(...xs);
@@ -230,13 +230,48 @@ function renderRouteList() {
   if (!el) return;
   el.innerHTML = '';
 
+  // Single-route view: show only the selected route + back button
+  const isSingleView = selectedRouteIdx !== null && busRoutes[selectedRouteIdx];
+  el.classList.toggle('route-list--single', !!isSingleView);
+
+  if (isSingleView) {
+    const route = busRoutes[selectedRouteIdx];
+    const idx   = selectedRouteIdx;
+    const cps       = getRouteCheckpoints(route.id);
+    const stopCount = cps.filter(c => c.type_checkpoint === 1).length;
+
+    const back = document.createElement('div');
+    back.className = 'route-back-row';
+    back.innerHTML = `<button class="route-back-btn" onclick="selectRoute(${idx})">← Все маршруты</button>
+      <span class="route-stat" style="margin-left:auto">${cps.length}т &nbsp; <span class="route-stops">${stopCount}ост</span></span>`;
+    el.appendChild(back);
+
+    const card = document.createElement('div');
+    card.className = 'route-card active';
+    card.innerHTML = `
+      <div class="route-card-header">
+        <button class="route-vis-btn" title="Показать/скрыть" onclick="toggleRouteVisible(${idx})" style="color:${route.visible ? route.color : '#555'}">${route.visible ? '●' : '○'}</button>
+        <div class="route-card-title">
+          <span class="route-badge route-badge-${route.type.toLowerCase()}">${ROUTE_TYPE_LABELS[route.type]}</span>
+          <span class="route-name">${escHtml(route.name)}</span>
+        </div>
+        <button class="btn-remove" onclick="removeRoute(${idx})" title="Удалить маршрут">✕</button>
+      </div>
+      ${renderRouteEditor(route, idx)}
+    `;
+    el.appendChild(card);
+
+    renderCheckpointList();
+    return;
+  }
+
+  // All-routes view
   busRoutes.forEach((route, idx) => {
     const cps       = getRouteCheckpoints(route.id);
     const stopCount = cps.filter(c => c.type_checkpoint === 1).length;
-    const isActive  = idx === selectedRouteIdx;
 
     const card = document.createElement('div');
-    card.className = 'route-card' + (isActive ? ' active' : '');
+    card.className = 'route-card';
     card.innerHTML = `
       <div class="route-card-header">
         <button class="route-vis-btn" title="Показать/скрыть" onclick="toggleRouteVisible(${idx})" style="color:${route.visible ? route.color : '#555'}">${route.visible ? '●' : '○'}</button>
@@ -250,7 +285,6 @@ function renderRouteList() {
         </div>
         <button class="btn-remove" onclick="removeRoute(${idx})" title="Удалить маршрут">✕</button>
       </div>
-      ${isActive ? renderRouteEditor(route, idx) : ''}
     `;
     el.appendChild(card);
   });

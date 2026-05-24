@@ -78,9 +78,12 @@ canvas.addEventListener('mousedown', e => {
 
   // Routes: click on existing checkpoint to select
   if (activeContext === 'routes' && mode === 'pan') {
+    // Only search within the selected route if one is active
+    const searchRoutes = selectedRouteIdx !== null
+      ? [busRoutes[selectedRouteIdx]].filter(Boolean)
+      : busRoutes.filter(r => r.visible);
     let hitCp = null;
-    const visRoutes = busRoutes.filter(r => r.visible);
-    for (const route of visRoutes) {
+    for (const route of searchRoutes) {
       const cps = getRouteCheckpoints(route.id);
       for (const cp of cps) {
         const s = worldToScreen(cp.x, cp.y);
@@ -92,10 +95,7 @@ canvas.addEventListener('mousedown', e => {
       if (hitCp) break;
     }
     if (hitCp) {
-      const ri = busRoutes.findIndex(r => r.id === hitCp.route);
-      selectedRouteIdx = ri;
       selectCheckpoint(hitCp.id);
-      renderRouteList();
       return;
     }
   }

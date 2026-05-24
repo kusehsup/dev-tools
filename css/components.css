@@ -413,6 +413,29 @@
   gap: 4px;
 }
 
+/* Back row in single-route view */
+.route-back-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 2px 2px 4px;
+  flex-shrink: 0;
+}
+.route-back-btn {
+  background: none;
+  border: none;
+  color: var(--text-tertiary);
+  font-size: 11px;
+  cursor: pointer;
+  padding: 2px 4px;
+  border-radius: var(--r-xs);
+  transition: color var(--duration-fast), background var(--duration-fast);
+}
+.route-back-btn:hover {
+  color: var(--text-primary);
+  background: var(--bg-hover);
+}
+
 /* Route list scrollable container */
 .route-list {
   overflow-y: auto;
@@ -423,6 +446,10 @@
   flex-direction: column;
   gap: 3px;
   border-bottom: 1px solid var(--border-subtle);
+}
+.route-list--single {
+  max-height: none;
+  overflow-y: visible;
 }
 
 /* Checkpoint list */
