@@ -497,13 +497,14 @@ function drawBusRoutes() {
     });
     ctx.stroke();
 
-    // Arrow direction indicators every N points
-    if (isSelected && cps.length > 1) {
-      const step = Math.max(1, Math.floor(cps.length / 8));
-      for (let i = step; i < cps.length; i += step) {
+    // Arrow on every segment, shown when segment is long enough on screen
+    if (cps.length > 1) {
+      const minLen = isSelected ? 28 : 40; // px threshold
+      const sz     = isSelected ? 8 : 6;
+      for (let i = 1; i < cps.length; i++) {
         const prev = worldToScreen(cps[i-1].x, cps[i-1].y);
         const curr = worldToScreen(cps[i].x,   cps[i].y);
-        drawArrow(ctx, prev, curr, col);
+        drawArrow(ctx, prev, curr, col, sz, minLen);
       }
     }
 
@@ -561,25 +562,25 @@ function drawBusRoutes() {
   });
 }
 
-function drawArrow(ctx, from, to, color) {
+function drawArrow(ctx, from, to, color, sz = 7, minLen = 24) {
   const dx  = to.x - from.x;
   const dy  = to.y - from.y;
   const len = Math.hypot(dx, dy);
-  if (len < 12) return;
+  if (len < minLen) return;
 
   const mx  = (from.x + to.x) / 2;
   const my  = (from.y + to.y) / 2;
   const ang = Math.atan2(dy, dx);
-  const sz  = 7;
 
   ctx.save();
   ctx.translate(mx, my);
   ctx.rotate(ang);
   ctx.fillStyle = color;
   ctx.beginPath();
-  ctx.moveTo( sz, 0);
-  ctx.lineTo(-sz,  sz * 0.5);
-  ctx.lineTo(-sz, -sz * 0.5);
+  ctx.moveTo( sz,       0);
+  ctx.lineTo(-sz * 0.6,  sz * 0.55);
+  ctx.lineTo(-sz * 0.2,  0);
+  ctx.lineTo(-sz * 0.6, -sz * 0.55);
   ctx.closePath();
   ctx.fill();
   ctx.restore();
