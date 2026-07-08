@@ -66,6 +66,9 @@ let selectedZoneIdx  = null;
 let drawingZone      = null;
 let greenZonesLoaded = false;
 let GREEN_ZONES_DATA = [];
+let parkingZonesLoaded = false;
+let PARKING_ZONES_DATA = [];
+let zonesSubTab      = 'user'; // 'user' | 'parking'
 
 // --- Calibration ---
 let calPoints    = [];

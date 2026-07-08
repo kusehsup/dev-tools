@@ -103,7 +103,15 @@ canvas.addEventListener('mousedown', e => {
   if (mode === 'pan') {
     if (activeContext === 'zones') {
       const hit = hitTestZone(w.x, w.y);
-      if (hit >= 0) { selectedZoneIdx = hit; renderZoneList(); scrollToZone(hit); draw(); }
+      if (hit >= 0) {
+        const z = zones[hit];
+        const wantTab = z.isParkingZone ? 'parking' : 'user';
+        if (zonesSubTab !== wantTab) switchZonesSubTab(wantTab);
+        selectedZoneIdx = hit;
+        renderZoneList();
+        scrollToZone(hit);
+        draw();
+      }
     }
     isPanning = true;
     panStart  = { x: e.offsetX, y: e.offsetY, vx: viewX, vy: viewY };

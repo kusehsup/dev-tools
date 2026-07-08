@@ -185,6 +185,24 @@ function exportAllZonesPwn() {
   openExportModal('Экспорт полигонов (.pwn)', blocks.join(',\n'));
 }
 
+function exportParkingZonesPwn() {
+  const list = parkingZonesLoaded
+    ? zones.filter(z => z.isParkingZone)
+    : PARKING_ZONES_DATA.map(pz => ({
+        name: pz.name,
+        points: flatCoordsToPoints(pz.coords),
+      }));
+
+  if (!list.length) { showToast('Нет зон парковщика'); return; }
+
+  const blocks = list.map(z => {
+    const verts = z.points.map(p => `\t\t${p.x.toFixed(4)}, ${p.y.toFixed(4)}`).join(',\n');
+    return `\t{\t// ${z.name}\n${verts}\n\t}`;
+  });
+
+  openExportModal('Зоны парковщика (.pwn)', blocks.join(',\n'));
+}
+
 function exportGreenZoneSQL(i) {
   const z   = zones[i];
   const pts = z.points;
