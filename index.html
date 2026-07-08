@@ -38,13 +38,21 @@
 
     <!-- Zones tab -->
     <div class="tab-panel" id="tab-zones">
+      <div class="zones-subtabs">
+        <button class="zones-subtab active" id="zones-subtab-user" onclick="switchZonesSubTab('user')">Свои</button>
+        <button class="zones-subtab" id="zones-subtab-parking" onclick="switchZonesSubTab('parking')">Зоны парковщика</button>
+      </div>
       <div id="zone-list"></div>
-      <div class="sidebar-footer">
+      <div class="sidebar-footer" id="zones-footer-user">
         <button class="btn btn-green" onclick="startZonePoly()">+ Полигон</button>
         <button class="btn btn-green" onclick="startZoneRect()">+ Прямоугольник</button>
         <button class="btn btn-blue"  onclick="exportAllZones()">Экспорт всех</button>
         <button class="btn btn-blue"  onclick="exportAllZonesPwn()">Экспорт .pwn</button>
         <button class="btn btn-green" id="btn-green-zones" onclick="toggleGreenZones()">🌿 GreenZones</button>
+      </div>
+      <div class="sidebar-footer" id="zones-footer-parking" style="display:none">
+        <button class="btn btn-blue" onclick="exportParkingZonesPwn()">Экспорт .pwn</button>
+        <button class="btn btn-yellow" id="btn-parking-zones" onclick="toggleParkingZones()">Показать на карте</button>
       </div>
     </div>
 
