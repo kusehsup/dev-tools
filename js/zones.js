@@ -6,19 +6,30 @@ function zoneColorFor(i) { return ZONE_COLORS[i % ZONE_COLORS.length]; }
 
 // --- Drawing mode entry points (called from topbar buttons) ---
 function startZonePoly() {
-  setMode('zone-poly');
-  drawingZone = { type: 'poly', points: [] };
-  switchTab('zones');
-  if (zonesSubTab !== 'user') switchZonesSubTab('user');
-  setInfo('Полигон: ЛКМ — точка, ПКМ или двойной клик — замкнуть');
+  startZoneDraw('poly', zonesSubTab === 'parking' ? 'parking' : 'user');
 }
 
 function startZoneRect() {
-  setMode('zone-rect');
-  drawingZone = { type: 'rect', points: [] };
+  startZoneDraw('rect', zonesSubTab === 'parking' ? 'parking' : 'user');
+}
+
+function startParkingZonePoly() {
+  startZoneDraw('poly', 'parking');
+}
+
+function startParkingZoneRect() {
+  startZoneDraw('rect', 'parking');
+}
+
+function startZoneDraw(type, target) {
+  setMode(type === 'rect' ? 'zone-rect' : 'zone-poly');
+  drawingZone = { type, points: [], target };
   switchTab('zones');
-  if (zonesSubTab !== 'user') switchZonesSubTab('user');
-  setInfo('Прямоугольник: зажми ЛКМ и тяни');
+  if (zonesSubTab !== target) switchZonesSubTab(target);
+  if (target === 'parking' && !parkingZonesLoaded) loadParkingZones();
+  setInfo(type === 'rect'
+    ? 'Прямоугольник: зажми ЛКМ и тяни'
+    : 'Полигон: ЛКМ — точка, ПКМ или двойной клик — замкнуть');
 }
 
 function finishZone() {
@@ -27,25 +38,41 @@ function finishZone() {
   drawingZone = null;
   if (z.type === 'poly' && z.points.length < 3) { setMode('pan'); draw(); return; }
   if (z.type === 'rect' && z.points.length < 2) { setMode('pan'); draw(); return; }
-  zones.push({
+
+  const isParking = z.target === 'parking' || zonesSubTab === 'parking';
+  const parkingCount = zones.filter(x => x.isParkingZone).length;
+  const userCount = zones.filter(x => !x.isParkingZone && !x.isGreenZone).length;
+
+  const zone = {
     type:   z.type,
-    name:   `Зона ${zones.length + 1}`,
-    color:  zoneColorFor(zones.length),
+    name:   isParking ? `Парковка ${parkingCount + 1}` : `Зона ${userCount + 1}`,
+    color:  isParking ? '#ff9800' : zoneColorFor(userCount),
     points: z.points,
     closed: true,
-  });
+  };
+  if (isParking) {
+    zone.isParkingZone = true;
+    zone.parkingId = `custom-${Date.now()}`;
+  }
+
+  zones.push(zone);
   selectedZoneIdx = zones.length - 1;
   setMode('pan');
-  saveUserZones();
+  if (isParking) saveParkingZones();
+  else saveUserZones();
   renderZoneList();
   draw();
+  showToast(isParking ? 'Зона парковщика создана' : 'Зона создана');
 }
 
 function removeZone(i) {
-  if (zones[i]?.isParkingZone) return;
+  const z = zones[i];
+  if (!z || z.isGreenZone) return;
+  const wasParking = !!z.isParkingZone;
   zones.splice(i, 1);
   if (selectedZoneIdx >= zones.length) selectedZoneIdx = zones.length - 1;
-  saveUserZones();
+  if (wasParking) saveParkingZones();
+  else saveUserZones();
   renderZoneList();
   draw();
 }
@@ -62,6 +89,42 @@ function loadUserZones() {
     if (raw) return JSON.parse(raw);
   } catch {}
   return [];
+}
+
+function saveParkingZones() {
+  const toSave = zones
+    .filter(z => z.isParkingZone)
+    .map(z => ({
+      parkingId: z.parkingId ?? null,
+      name: z.name,
+      color: z.color || '#ff9800',
+      type: z.type || 'poly',
+      points: z.points,
+    }));
+  try { localStorage.setItem(STORAGE.PARKING, JSON.stringify(toSave)); } catch {}
+}
+
+function loadSavedParkingZones() {
+  try {
+    const raw = localStorage.getItem(STORAGE.PARKING);
+    if (raw) {
+      const parsed = JSON.parse(raw);
+      if (Array.isArray(parsed)) return parsed;
+    }
+  } catch {}
+  return null;
+}
+
+function parkingZonesFromBuiltin() {
+  return PARKING_ZONES_DATA.map((pz, idx) => ({
+    type: 'poly',
+    name: pz.name,
+    color: '#ff9800',
+    points: flatCoordsToPoints(pz.coords),
+    closed: true,
+    isParkingZone: true,
+    parkingId: `builtin-${idx}`,
+  })).filter(z => z.points.length >= 3);
 }
 
 // --- Sidebar list ---
@@ -141,10 +204,11 @@ function renderZoneList() {
         </div>`;
     }
 
-    const canEdit = !z.isParkingZone;
+    const canEdit = !z.isGreenZone;
+    const persistFn = z.isParkingZone ? 'saveParkingZones()' : 'saveUserZones()';
     const swatches = canEdit ? ZONE_COLORS.map(c =>
       `<div class="color-swatch ${z.color === c ? 'active' : ''}" style="background:${c}"
-         onclick="zones[${i}].color='${c}';saveUserZones();renderZoneList();draw()"></div>`
+         onclick="zones[${i}].color='${c}';${persistFn};renderZoneList();draw()"></div>`
     ).join('') : '';
 
     const removeBtn = canEdit
@@ -152,19 +216,20 @@ function renderZoneList() {
       : '';
 
     const nameInput = canEdit
-      ? `<input class="field-input" type="text" value="${z.name}"
-        onchange="zones[${i}].name=this.value; saveUserZones(); renderZoneList();"
+      ? `<input class="field-input" type="text" value="${escapeHtmlAttr(z.name)}"
+        onchange="zones[${i}].name=this.value; ${persistFn}; renderZoneList();"
         onclick="event.stopPropagation()">`
       : '';
 
-    const exportBtns = canEdit
+    const exportBtns = z.isParkingZone
       ? `<div style="display:flex;gap:6px;flex-wrap:wrap">
+        <button class="zone-export-btn" onclick="exportZone(${i},'poly')">Poly</button>
+        <button class="zone-export-btn" onclick="exportZone(${i},'rect')">AABB</button>
+      </div>`
+      : `<div style="display:flex;gap:6px;flex-wrap:wrap">
         <button class="zone-export-btn" onclick="exportZone(${i},'rect')">AABB</button>
         <button class="zone-export-btn" onclick="exportZone(${i},'poly')">Poly</button>
         <button class="zone-export-btn btn-green" onclick="exportGreenZoneSQL(${i})">SQL INSERT</button>
-      </div>`
-      : `<div style="display:flex;gap:6px;flex-wrap:wrap">
-        <button class="zone-export-btn" onclick="exportZone(${i},'poly')">Poly</button>
       </div>`;
 
     card.innerHTML = `
@@ -201,7 +266,7 @@ function renderZoneList() {
     empty.className = 'zone-card-meta';
     empty.style.padding = '8px';
     empty.textContent = showParking
-      ? (parkingZonesLoaded ? 'Нет зон парковщика' : 'Нажми «Показать на карте»')
+      ? (parkingZonesLoaded ? 'Нет зон парковщика — нарисуй полигон' : 'Нажми «Показать на карте»')
       : 'Нет своих зон — нарисуй полигон или прямоугольник';
     el.appendChild(empty);
   }
@@ -215,6 +280,14 @@ function scrollToZone(i) {
       return;
     }
   }
+}
+
+function escapeHtmlAttr(s) {
+  return String(s)
+    .replace(/&/g, '&amp;')
+    .replace(/"/g, '&quot;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;');
 }
 
 // --- Hit testing ---
@@ -381,20 +454,26 @@ function flatCoordsToPoints(coords) {
 
 function loadParkingZones() {
   if (parkingZonesLoaded) return;
-  PARKING_ZONES_DATA.forEach((pz, idx) => {
-    const pts = flatCoordsToPoints(pz.coords);
-    if (pts.length < 3) return;
-    zones.push({
-      type: 'poly',
-      name: pz.name,
-      color: '#ff9800',
-      points: pts,
-      closed: true,
-      isParkingZone: true,
-      parkingId: idx,
-    });
-  });
+
+  const saved = loadSavedParkingZones();
+  const list = saved
+    ? saved.map((z, idx) => ({
+        type: z.type || 'poly',
+        name: z.name || `Парковка ${idx + 1}`,
+        color: z.color || '#ff9800',
+        points: Array.isArray(z.points) ? z.points : [],
+        closed: true,
+        isParkingZone: true,
+        parkingId: z.parkingId ?? `saved-${idx}`,
+      })).filter(z => z.points.length >= 2)
+    : parkingZonesFromBuiltin();
+
+  list.forEach(z => zones.push(z));
   parkingZonesLoaded = true;
+
+  // Persist builtin snapshot on first load so edits stick
+  if (!saved) saveParkingZones();
+
   const btn = document.getElementById('btn-parking-zones');
   if (btn) {
     btn.classList.add('btn-green');
@@ -404,6 +483,7 @@ function loadParkingZones() {
 }
 
 function unloadParkingZones() {
+  if (parkingZonesLoaded) saveParkingZones();
   zones = zones.filter(z => !z.isParkingZone);
   parkingZonesLoaded = false;
   if (selectedZoneIdx !== null && selectedZoneIdx >= zones.length) {
@@ -423,10 +503,39 @@ function toggleParkingZones() {
     showToast('Зоны парковщика скрыты');
   } else {
     loadParkingZones();
-    showToast(`Загружено ${PARKING_ZONES_DATA.length} зон парковщика`);
+    const n = zones.filter(z => z.isParkingZone).length;
+    showToast(`Загружено ${n} зон парковщика`);
   }
   renderZoneList();
   draw();
+}
+
+function resetParkingZones() {
+  showConfirm('Сбросить зоны парковщика к исходным из .pwn?', () => {
+    try { localStorage.removeItem(STORAGE.PARKING); } catch {}
+    zones = zones.filter(z => !z.isParkingZone);
+    parkingZonesLoaded = false;
+    loadParkingZones();
+    renderZoneList();
+    draw();
+    showToast('Зоны парковщика сброшены');
+  });
+}
+
+function hitTestEditableZoneVertex(ex, ey, radius = 8) {
+  if (activeContext !== 'zones') return null;
+  for (let i = zones.length - 1; i >= 0; i--) {
+    const z = zones[i];
+    if (z.isGreenZone) continue;
+    if (zonesSubTab === 'parking' ? !z.isParkingZone : z.isParkingZone) continue;
+    for (let j = 0; j < z.points.length; j++) {
+      const s = worldToScreen(z.points[j].x, z.points[j].y);
+      if (Math.hypot(ex - s.x, ey - s.y) <= radius) {
+        return { zoneIdx: i, pointIdx: j };
+      }
+    }
+  }
+  return null;
 }
 
 // Green zones source data (assigned to state variable declared in state.js)

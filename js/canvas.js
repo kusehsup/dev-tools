@@ -100,6 +100,17 @@ canvas.addEventListener('mousedown', e => {
     }
   }
 
+  // Editable zone vertex drag must win over pan selection
+  if (showZones && activeContext === 'zones') {
+    const vh = hitTestEditableZoneVertex(e.offsetX, e.offsetY);
+    if (vh) {
+      draggingZoneVertex = vh;
+      selectedZoneIdx = vh.zoneIdx;
+      renderZoneList();
+      return;
+    }
+  }
+
   if (mode === 'pan') {
     if (activeContext === 'zones') {
       const hit = hitTestZone(w.x, w.y);
@@ -137,7 +148,7 @@ canvas.addEventListener('mousedown', e => {
     return;
   }
 
-  // Zone corner drag
+  // Zone corner drag (traffic lights)
   if (showZones) {
     const ph = hitTestZonePoints(e.offsetX, e.offsetY);
     if (ph) {
@@ -178,6 +189,17 @@ canvas.addEventListener('mousemove', e => {
     viewX = panStart.vx - (e.offsetX - panStart.x) / viewScale;
     viewY = panStart.vy + (e.offsetY - panStart.y) / viewScale;
     draw();
+    return;
+  }
+
+  if (draggingZoneVertex !== null) {
+    const w = screenToWorld(e.offsetX, e.offsetY);
+    const z = zones[draggingZoneVertex.zoneIdx];
+    if (z?.points?.[draggingZoneVertex.pointIdx]) {
+      z.points[draggingZoneVertex.pointIdx] = { x: w.x, y: w.y };
+      setInfo(`${z.name} · вершина ${draggingZoneVertex.pointIdx + 1}: ${w.x.toFixed(2)}, ${w.y.toFixed(2)}`);
+      draw();
+    }
     return;
   }
 
@@ -226,6 +248,14 @@ canvas.addEventListener('mousemove', e => {
 
   // Cursor for zone point handles
   if (!draggingTL && !isPanning && showZones) {
+    if (activeContext === 'zones') {
+      const vh = hitTestEditableZoneVertex(e.offsetX, e.offsetY);
+      if (vh) {
+        canvas.style.cursor = 'grab';
+        setInfo(`Вершина ${vh.pointIdx + 1} — тяни чтобы изменить зону`);
+        return;
+      }
+    }
     const ph = hitTestZonePoints(e.offsetX, e.offsetY);
     canvas.style.cursor = ph ? 'grab' : (mode === 'pan' ? 'grab' : mode === 'tl' ? 'cell' : 'crosshair');
     if (ph) setInfo(`P${ph.point} TL#${ph.tlIdx} — тяни чтобы изменить зону`);
@@ -240,16 +270,22 @@ canvas.addEventListener('mouseup', e => {
     return;
   }
 
-  if (mode === 'pan') { isPanning = false; return; }
-
   const wasDraggingTL    = draggingTL    !== null;
   const wasDraggingPoint = draggingPoint !== null;
+  const wasDraggingVertex = draggingZoneVertex !== null;
+  const draggedZone = wasDraggingVertex ? zones[draggingZoneVertex.zoneIdx] : null;
 
   isPanning     = false;
   draggingTL    = null;
   draggingPoint = null;
+  draggingZoneVertex = null;
 
   if (wasDraggingTL || wasDraggingPoint) saveTLState();
+  if (wasDraggingVertex && draggedZone) {
+    if (draggedZone.isParkingZone) saveParkingZones();
+    else saveUserZones();
+    renderZoneList();
+  }
 });
 
 canvas.addEventListener('wheel', e => {

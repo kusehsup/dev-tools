@@ -32,6 +32,7 @@ const STORAGE = {
   MAP_CAL:  'tl_map_cal',
   TL_LIST:  'tl_traffic_lights',
   ZONES:    'tl_user_zones',
+  PARKING:  'tl_parking_zones',
 };
 
 // --- Viewport ---
@@ -47,7 +48,8 @@ let isPanning     = false;
 let panStart      = null;
 let draggingTL    = null;
 let dragOff       = null;
-let draggingPoint = null;   // { tlIdx, point }
+let draggingPoint = null;   // { tlIdx, point } — traffic-light zone corners
+let draggingZoneVertex = null; // { zoneIdx, pointIdx } — custom/parking polygon vertices
 
 // --- Display toggles ---
 let showMap    = true;
