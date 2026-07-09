@@ -113,6 +113,7 @@
 
       <div class="sep"></div>
       <button class="mode-btn cal" id="mode-cal" onclick="setMode('cal')">⊕ Калибровка</button>
+      <button class="mode-btn map-img" id="btn-map-panel" onclick="toggleMapPanel()">🖼 PNG</button>
     </div>
 
     <!-- Canvas -->
@@ -129,6 +130,19 @@
         </button>
         <div id="cal-result"></div>
         <div id="cal-params"></div>
+      </div>
+
+      <!-- Map PNG panel -->
+      <div id="map-panel">
+        <h4>🖼 Карта (Map.png)</h4>
+        <p>Загрузи PNG вместо <code>assets/Map.png</code>. Файл сохранится в браузере и подставится при следующем открытии.</p>
+        <div id="map-panel-status" class="map-panel-status">Загрузка…</div>
+        <input type="file" id="map-file-input" accept="image/png,.png" hidden onchange="onMapFileSelected(this)">
+        <div class="map-panel-actions">
+          <button class="btn btn-accent" onclick="document.getElementById('map-file-input').click()">⬆ Загрузить PNG</button>
+          <button class="btn btn-yellow" onclick="downloadMapPng()">⬇ Скачать</button>
+          <button class="btn btn-red" onclick="resetMapPng()">↺ Сброс</button>
+        </div>
       </div>
     </div>
 
