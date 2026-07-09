@@ -5,6 +5,177 @@
 // --- Map image ---
 // onload is assigned in canvas.js after draw() is defined
 const mapImg = new Image();
+let customMapObjectUrl = null;
+let mapImageSource = 'default'; // 'default' | 'custom'
+
+function revokeCustomMapUrl() {
+  if (customMapObjectUrl) {
+    URL.revokeObjectURL(customMapObjectUrl);
+    customMapObjectUrl = null;
+  }
+}
+
+function openMapImageDb() {
+  return new Promise((resolve, reject) => {
+    const req = indexedDB.open(MAP_IMAGE_DB, 1);
+    req.onupgradeneeded = () => {
+      if (!req.result.objectStoreNames.contains(MAP_IMAGE_STORE)) {
+        req.result.createObjectStore(MAP_IMAGE_STORE);
+      }
+    };
+    req.onsuccess = () => resolve(req.result);
+    req.onerror = () => reject(req.error);
+  });
+}
+
+async function saveCustomMapBlob(blob) {
+  const db = await openMapImageDb();
+  return new Promise((resolve, reject) => {
+    const tx = db.transaction(MAP_IMAGE_STORE, 'readwrite');
+    tx.objectStore(MAP_IMAGE_STORE).put(blob, MAP_IMAGE_KEY);
+    tx.oncomplete = () => resolve();
+    tx.onerror = () => reject(tx.error);
+  });
+}
+
+async function loadCustomMapBlob() {
+  const db = await openMapImageDb();
+  return new Promise((resolve, reject) => {
+    const tx = db.transaction(MAP_IMAGE_STORE, 'readonly');
+    const req = tx.objectStore(MAP_IMAGE_STORE).get(MAP_IMAGE_KEY);
+    req.onsuccess = () => resolve(req.result || null);
+    req.onerror = () => reject(req.error);
+  });
+}
+
+async function clearCustomMapBlob() {
+  const db = await openMapImageDb();
+  return new Promise((resolve, reject) => {
+    const tx = db.transaction(MAP_IMAGE_STORE, 'readwrite');
+    tx.objectStore(MAP_IMAGE_STORE).delete(MAP_IMAGE_KEY);
+    tx.oncomplete = () => resolve();
+    tx.onerror = () => reject(tx.error);
+  });
+}
+
+function formatMapFileSize(bytes) {
+  if (bytes < 1024) return `${bytes} B`;
+  if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
+  return `${(bytes / (1024 * 1024)).toFixed(2)} MB`;
+}
+
+function updateMapPanelStatus(extra) {
+  const el = document.getElementById('map-panel-status');
+  if (!el) return;
+  const srcLabel = mapImageSource === 'custom' ? 'своя (из браузера)' : 'assets/Map.png';
+  const dim = mapImg.naturalWidth && mapImg.naturalHeight
+    ? `${mapImg.naturalWidth}×${mapImg.naturalHeight}px`
+    : '—';
+  el.textContent = `Источник: ${srcLabel} · ${dim}${extra ? ` · ${extra}` : ''}`;
+}
+
+function applyMapImageSrc(src, source) {
+  mapImageSource = source;
+  mapImg.onload = () => {
+    updateMapPanelStatus();
+    draw();
+  };
+  mapImg.onerror = () => {
+    showToast?.('Не удалось загрузить карту');
+    updateMapPanelStatus('ошибка загрузки');
+  };
+  mapImg.src = src;
+}
+
+function setMapImageFromBlob(blob) {
+  revokeCustomMapUrl();
+  customMapObjectUrl = URL.createObjectURL(blob);
+  applyMapImageSrc(customMapObjectUrl, 'custom');
+}
+
+function loadDefaultMapImage() {
+  revokeCustomMapUrl();
+  applyMapImageSrc(`${DEFAULT_MAP_SRC}?t=${Date.now()}`, 'default');
+}
+
+async function initMapImage() {
+  try {
+    const blob = await loadCustomMapBlob();
+    if (blob) {
+      setMapImageFromBlob(blob);
+      return;
+    }
+  } catch {}
+  loadDefaultMapImage();
+}
+
+function toggleMapPanel() {
+  const panel = document.getElementById('map-panel');
+  const btn = document.getElementById('btn-map-panel');
+  const open = !panel.classList.contains('open');
+  panel.classList.toggle('open', open);
+  btn?.classList.toggle('active', open);
+  if (open) {
+    document.getElementById('cal-panel')?.classList.remove('open');
+    document.getElementById('mode-cal')?.classList.remove('active');
+    if (mode === 'cal') setMode('pan');
+    updateMapPanelStatus();
+  }
+}
+
+function onMapFileSelected(input) {
+  const file = input.files?.[0];
+  input.value = '';
+  if (!file) return;
+
+  if (file.type !== 'image/png' && !file.name.toLowerCase().endsWith('.png')) {
+    showToast('Нужен файл PNG');
+    return;
+  }
+
+  const reader = new FileReader();
+  reader.onload = async () => {
+    try {
+      const blob = new Blob([reader.result], { type: 'image/png' });
+      await saveCustomMapBlob(blob);
+      setMapImageFromBlob(blob);
+      showToast(`Карта обновлена (${formatMapFileSize(blob.size)})`);
+      updateMapPanelStatus(formatMapFileSize(blob.size));
+    } catch {
+      showToast('Не удалось сохранить карту');
+    }
+  };
+  reader.onerror = () => showToast('Ошибка чтения файла');
+  reader.readAsArrayBuffer(file);
+}
+
+async function resetMapPng() {
+  showConfirm('Сбросить карту к assets/Map.png?', async () => {
+    try {
+      await clearCustomMapBlob();
+      loadDefaultMapImage();
+      showToast('Карта сброшена');
+    } catch {
+      showToast('Не удалось сбросить карту');
+    }
+  });
+}
+
+async function downloadMapPng() {
+  try {
+    const resp = await fetch(mapImg.src);
+    const blob = await resp.blob();
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'Map.png';
+    a.click();
+    URL.revokeObjectURL(url);
+    showToast('Map.png скачан');
+  } catch {
+    showToast('Не удалось скачать карту');
+  }
+}
 
 // --- Calibration ---
 function defaultCal() {
