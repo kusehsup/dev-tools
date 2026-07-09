@@ -186,13 +186,20 @@ function exportAllZonesPwn() {
 }
 
 function exportParkingZonesPwn() {
-  const list = parkingZonesLoaded
-    ? zones.filter(z => z.isParkingZone)
-    : PARKING_ZONES_DATA.map(pz => ({
-        name: pz.name,
-        points: flatCoordsToPoints(pz.coords),
-      }));
+  let list;
+  if (parkingZonesLoaded) {
+    list = zones.filter(z => z.isParkingZone);
+  } else {
+    const saved = loadSavedParkingZones();
+    list = saved
+      ? saved.map(z => ({ name: z.name, points: z.points || [] }))
+      : PARKING_ZONES_DATA.map(pz => ({
+          name: pz.name,
+          points: flatCoordsToPoints(pz.coords),
+        }));
+  }
 
+  list = list.filter(z => z.points?.length >= 3);
   if (!list.length) { showToast('Нет зон парковщика'); return; }
 
   const blocks = list.map(z => {
