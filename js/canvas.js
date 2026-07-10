@@ -32,6 +32,10 @@ function draw() {
   if (activeContext === 'routes') {
     drawBusRoutes();
   }
+
+  if (activeContext === 'train') {
+    drawTrainRoutes();
+  }
 }
 
 // --- Mouse handlers ---
@@ -74,6 +78,38 @@ canvas.addEventListener('mousedown', e => {
     }
     cancelAddCheckpointMode();
     return;
+  }
+
+  // Train: click checkpoint or station
+  if (activeContext === 'train' && mode === 'pan') {
+    const searchRoutes = selectedTrainRouteIdx !== null
+      ? [trainRoutes[selectedTrainRouteIdx]]
+      : trainRoutes.filter(r => r.visible);
+
+    for (const route of searchRoutes) {
+      const cps = getTrainRouteCheckpoints(route.id);
+      for (let i = cps.length - 1; i >= 0; i--) {
+        const cp = cps[i];
+        const s = worldToScreen(cp.x, cp.y);
+        if (Math.hypot(e.offsetX - s.x, e.offsetY - s.y) < 10) {
+          selectTrainCheckpoint(cp.id);
+          return;
+        }
+      }
+    }
+
+    if (selectedTrainRouteIdx !== null && trainRoutes[selectedTrainRouteIdx]) {
+      const stations = getTrainRouteStations(trainRoutes[selectedTrainRouteIdx].id);
+      for (let i = stations.length - 1; i >= 0; i--) {
+        const st = stations[i];
+        if (st.x === 0 && st.y === 0) continue;
+        const s = worldToScreen(st.x, st.y);
+        if (Math.hypot(e.offsetX - s.x, e.offsetY - s.y) < 12) {
+          selectTrainStation(st.id);
+          return;
+        }
+      }
+    }
   }
 
   // Routes: click on existing checkpoint to select
@@ -321,6 +357,7 @@ zones = loadUserZones();
 renderZoneList();
 
 initRoutesData().then(() => { renderRouteList(); draw(); });
+initTrainData().then(() => { renderTrainRouteList(); draw(); });
 
 // 4. Hide zone-specific mode buttons (we start on TL tab)
 ['mode-zone-poly','mode-zone-rect'].forEach(id => {

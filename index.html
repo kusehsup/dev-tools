@@ -22,6 +22,7 @@
       <button class="tab-btn active" onclick="switchTab('tl')">Светофоры</button>
       <button class="tab-btn"        onclick="switchTab('zones')">Зоны</button>
       <button class="tab-btn"        onclick="switchTab('routes')">Маршруты</button>
+      <button class="tab-btn"        onclick="switchTab('train')">Машинист</button>
     </div>
 
     <!-- Traffic Lights tab -->
@@ -85,6 +86,25 @@
       </div>
     </div>
 
+    <!-- Train driver tab -->
+    <div class="tab-panel" id="tab-train">
+      <div class="routes-section-header">
+        <span class="routes-section-title">🚂 Маршруты машиниста</span>
+        <div class="routes-section-toggles">
+          <button class="toggle on" id="btn-show-train-routes" onclick="toggleShowTrainRoutes()">Пути</button>
+          <button class="toggle on" id="btn-show-train-stops"  onclick="toggleShowTrainStops()">Станции</button>
+        </div>
+      </div>
+      <div id="train-route-list" class="route-list"></div>
+      <div id="train-station-list" class="checkpoint-list"></div>
+      <div id="train-checkpoint-list" class="checkpoint-list"></div>
+      <div class="sidebar-footer">
+        <button class="btn btn-yellow" onclick="exportTrainRouteSQL()">⬇ SQL checkpoint</button>
+        <button class="btn btn-yellow" onclick="exportTrainStationsSQL()">⬇ SQL train_checks</button>
+        <button class="btn btn-red"    onclick="resetTrainData()">↺ Сброс данных</button>
+      </div>
+    </div>
+
   </div>
 
   <!-- ===================== CANVAS AREA ===================== -->
@@ -109,6 +129,9 @@
       </span>
       <span id="route-toggles" style="display:none">
         <button class="toggle on" id="btn-routes-canvas" onclick="toggleBusRoutes()">Маршруты</button>
+      </span>
+      <span id="train-toggles" style="display:none">
+        <button class="toggle on" id="btn-train-canvas" onclick="toggleShowTrainRoutes()">Поезд</button>
       </span>
 
       <div class="sep"></div>
@@ -200,6 +223,7 @@
 <script src="js/traffic-lights.js"></script>
 <script src="js/zones.js"></script>
 <script src="js/routes.js"></script>
+<script src="js/train-routes.js"></script>
 <script src="js/import-export.js"></script>
 <script src="js/ui.js"></script>
 <script src="js/canvas.js"></script>
