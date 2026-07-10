@@ -471,6 +471,148 @@ function resetTrainData() {
   });
 }
 
+function parseSqlTupleValues(tupleStr) {
+  const values = [];
+  let i = 0;
+  const s = tupleStr.trim().replace(/^\(/, '').replace(/\)$/, '');
+
+  while (i < s.length) {
+    while (i < s.length && /[\s,]/.test(s[i])) i++;
+    if (i >= s.length) break;
+
+    if (s[i] === "'") {
+      let end = i + 1;
+      while (end < s.length) {
+        if (s[end] === "'" && s[end + 1] === "'") end += 2;
+        else if (s[end] === "'") break;
+        else end++;
+      }
+      values.push(s.slice(i + 1, end).replace(/''/g, "'"));
+      i = end + 1;
+      continue;
+    }
+
+    let end = i;
+    while (end < s.length && s[end] !== ',') end++;
+    const raw = s.slice(i, end).trim();
+    values.push(raw === '' ? null : (raw.includes('.') ? parseFloat(raw) : parseInt(raw, 10)));
+    i = end + 1;
+  }
+
+  return values;
+}
+
+function parseCheckpointSQL(sql) {
+  const rows = [];
+  const insertRe = /INSERT\s+INTO\s+`?checkpoint`?\s*\([^)]*\)\s*VALUES\s*/gi;
+  let match;
+
+  while ((match = insertRe.exec(sql)) !== null) {
+    const rest = sql.slice(match.index + match[0].length);
+    let end = rest.indexOf(';');
+    if (end === -1) end = rest.length;
+    const valuesBlock = rest.slice(0, end);
+
+    const tupleRe = /\(([^()]*)\)/g;
+    let tupleMatch;
+    while ((tupleMatch = tupleRe.exec(valuesBlock)) !== null) {
+      const vals = parseSqlTupleValues('(' + tupleMatch[1] + ')');
+      if (vals.length < 9) continue;
+      rows.push({
+        id: +vals[0],
+        type: +vals[1],
+        route: +vals[2],
+        type_checkpoint: +vals[3],
+        x: +vals[4],
+        y: +vals[5],
+        z: +vals[6],
+        size: +vals[7],
+        storage: +vals[8],
+      });
+    }
+  }
+
+  return rows;
+}
+
+function applyTrainCheckpointImport(imported) {
+  const trainRouteIds = new Set(trainRoutes.map(r => r.id));
+  const valid = imported.filter(c =>
+    trainRouteIds.has(c.route) &&
+    Number.isFinite(c.id) &&
+    Number.isFinite(c.x) &&
+    Number.isFinite(c.y)
+  );
+
+  if (!valid.length) return { ok: false, reason: 'no_rows' };
+
+  const affectedRoutes = new Set(valid.map(c => c.route));
+  const kept = trainCheckpoints.filter(c => !affectedRoutes.has(c.route));
+  trainCheckpoints = [...kept, ...valid];
+  saveTrainData();
+
+  return {
+    ok: true,
+    imported: valid.length,
+    skipped: imported.length - valid.length,
+    routes: [...affectedRoutes].sort((a, b) => a - b),
+  };
+}
+
+function importTrainCheckpointsFromSQL(sql) {
+  const parsed = parseCheckpointSQL(sql);
+  if (!parsed.length) {
+    showToast('В SQL не найдено INSERT INTO checkpoint');
+    return false;
+  }
+
+  const result = applyTrainCheckpointImport(parsed);
+  if (!result.ok) {
+    showToast('Нет чекпоинтов для маршрутов машиниста (route 0–2)');
+    return false;
+  }
+
+  selectedTrainCheckpointId = null;
+  if (selectedTrainRouteIdx !== null) {
+    const route = trainRoutes[selectedTrainRouteIdx];
+    if (route && result.routes.includes(route.id)) fitTrainRouteToView(route);
+  }
+  if (trainSubTab !== 'checkpoints') switchTrainSubTab('checkpoints');
+  renderTrainRouteList();
+  draw();
+
+  const routeNames = result.routes
+    .map(id => trainRoutes.find(r => r.id === id)?.name || `#${id}`)
+    .join(', ');
+  const skipNote = result.skipped ? `, пропущено ${result.skipped}` : '';
+  showToast(`Импортировано ${result.imported} чекпоинтов (${routeNames})${skipNote}`);
+  return true;
+}
+
+function onTrainCheckpointFileSelected(input) {
+  const file = input.files?.[0];
+  input.value = '';
+  if (!file) return;
+
+  const name = file.name.toLowerCase();
+  if (!name.endsWith('.sql') && !name.endsWith('.txt')) {
+    showToast('Нужен файл .sql с INSERT INTO checkpoint');
+    return;
+  }
+
+  const reader = new FileReader();
+  reader.onload = () => {
+    const text = String(reader.result || '');
+    if (!/INSERT\s+INTO\s+`?checkpoint`?/i.test(text)) {
+      showToast('Файл не содержит INSERT INTO checkpoint');
+      return;
+    }
+    importTrainCheckpointsFromSQL(text);
+  };
+  reader.onerror = () => showToast('Ошибка чтения файла');
+  reader.readAsText(file, 'utf-8');
+}
+
 function exportTrainRouteSQL() {
   const routeIds = selectedTrainRouteIdx !== null
     ? [trainRoutes[selectedTrainRouteIdx].id]

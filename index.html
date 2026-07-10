@@ -107,6 +107,8 @@
         <div id="train-detail-list" class="checkpoint-list"></div>
       </div>
       <div class="sidebar-footer">
+        <input type="file" id="train-cp-file-input" accept=".sql,.txt,text/plain" hidden onchange="onTrainCheckpointFileSelected(this)">
+        <button class="btn btn-accent" onclick="document.getElementById('train-cp-file-input').click()">⬆ SQL checkpoint</button>
         <button class="btn btn-yellow" onclick="exportTrainRouteSQL()">⬇ SQL checkpoint</button>
         <button class="btn btn-yellow" onclick="exportTrainStationsSQL()">⬇ SQL train_checks</button>
         <button class="btn btn-red"    onclick="resetTrainData()">↺ Сброс</button>
