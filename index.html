@@ -91,17 +91,25 @@
       <div class="routes-section-header">
         <span class="routes-section-title">🚂 Маршруты машиниста</span>
         <div class="routes-section-toggles">
-          <button class="toggle on" id="btn-show-train-routes" onclick="toggleShowTrainRoutes()">Пути</button>
-          <button class="toggle on" id="btn-show-train-stops"  onclick="toggleShowTrainStops()">Станции</button>
+          <button class="toggle on" id="btn-show-train-routes" onclick="toggleShowTrainRoutes()" title="Линии пути">Пути</button>
+          <button class="toggle on" id="btn-show-train-stops"  onclick="toggleShowTrainStops()" title="Остановки checkpoint">Ост.</button>
+          <button class="toggle on" id="btn-show-train-checks" onclick="toggleShowTrainChecks()" title="Станции train_checks">Станц.</button>
         </div>
       </div>
       <div id="train-route-list" class="route-list"></div>
-      <div id="train-station-list" class="checkpoint-list"></div>
-      <div id="train-checkpoint-list" class="checkpoint-list"></div>
+      <div id="train-detail-panel" class="train-detail-panel">
+        <div id="train-summary" class="train-summary"></div>
+        <div class="zones-subtabs train-subtabs">
+          <button class="zones-subtab active" id="train-subtab-stations" onclick="switchTrainSubTab('stations')">Станции БД</button>
+          <button class="zones-subtab" id="train-subtab-checkpoints" onclick="switchTrainSubTab('checkpoints')">Чекпоинты</button>
+        </div>
+        <div id="train-detail-tools" class="train-detail-tools"></div>
+        <div id="train-detail-list" class="checkpoint-list"></div>
+      </div>
       <div class="sidebar-footer">
         <button class="btn btn-yellow" onclick="exportTrainRouteSQL()">⬇ SQL checkpoint</button>
         <button class="btn btn-yellow" onclick="exportTrainStationsSQL()">⬇ SQL train_checks</button>
-        <button class="btn btn-red"    onclick="resetTrainData()">↺ Сброс данных</button>
+        <button class="btn btn-red"    onclick="resetTrainData()">↺ Сброс</button>
       </div>
     </div>
 

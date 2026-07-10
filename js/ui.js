@@ -76,8 +76,22 @@ function toggleAngles() { showAngles = !showAngles; document.getElementById('btn
 function toggleBusRoutes() { showBusRoutes = !showBusRoutes; document.getElementById('btn-routes-canvas').classList.toggle('on', showBusRoutes); draw(); }
 function toggleShowRoutes() { showBusRoutes = !showBusRoutes; document.getElementById('btn-show-routes').classList.toggle('on', showBusRoutes); draw(); }
 function toggleShowStops()  { showStops    = !showStops;    document.getElementById('btn-show-stops').classList.toggle('on', showStops);  draw(); }
-function toggleShowTrainRoutes() { showTrainRoutes = !showTrainRoutes; document.getElementById('btn-show-train-routes')?.classList.toggle('on', showTrainRoutes); document.getElementById('btn-train-canvas')?.classList.toggle('on', showTrainRoutes); draw(); }
-function toggleShowTrainStops()  { showTrainStops  = !showTrainStops;  document.getElementById('btn-show-train-stops')?.classList.toggle('on', showTrainStops); draw(); }
+function toggleShowTrainRoutes() {
+  showTrainRoutes = !showTrainRoutes;
+  document.getElementById('btn-show-train-routes')?.classList.toggle('on', showTrainRoutes);
+  document.getElementById('btn-train-canvas')?.classList.toggle('on', showTrainRoutes);
+  draw();
+}
+function toggleShowTrainStops() {
+  showTrainStops = !showTrainStops;
+  document.getElementById('btn-show-train-stops')?.classList.toggle('on', showTrainStops);
+  draw();
+}
+function toggleShowTrainChecks() {
+  showTrainChecks = !showTrainChecks;
+  document.getElementById('btn-show-train-checks')?.classList.toggle('on', showTrainChecks);
+  draw();
+}
 
 function resetRoutesData() {
   showConfirm('Сбросить все данные маршрутов к исходным из SQL?', async () => {

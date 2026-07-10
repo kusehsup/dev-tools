@@ -89,7 +89,7 @@
 }
 
 /* Scroll areas */
-#tl-list, #zone-list, #log-panel, #train-route-list, #train-station-list, #train-checkpoint-list {
+#tl-list, #zone-list, #log-panel {
   flex: 1;
   overflow-y: auto;
   padding: var(--sp-3);

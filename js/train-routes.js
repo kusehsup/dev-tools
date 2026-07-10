@@ -7,6 +7,11 @@ const TRAIN_ROUTE_KIND_LABELS = {
   METRO: 'Метро',
 };
 
+const TRAIN_ROUTE_BADGE_CLASS = {
+  MAIN:  'route-badge-main',
+  METRO: 'route-badge-metro',
+};
+
 const TRAIN_ROUTE_COLORS = {
   0: '#e91e63',
   1: '#9c27b0',
@@ -23,8 +28,11 @@ let trainCheckpoints = [];
 let selectedTrainRouteIdx = null;
 let selectedTrainCheckpointId = null;
 let selectedTrainStationId = null;
+let trainSubTab = 'stations'; // 'stations' | 'checkpoints'
+let trainFilterStopsOnly = false;
 let showTrainRoutes  = true;
 let showTrainStops   = true;
+let showTrainChecks  = true;
 
 function saveTrainData() {
   localStorage.setItem(STORAGE_TRAIN_ROUTES,      JSON.stringify(trainRoutes));
@@ -76,8 +84,23 @@ function getTrainRouteStations(routeId) {
   return trainStations.filter(s => s.route === routeId);
 }
 
-function getTrainRouteById(id) {
-  return trainRoutes.find(r => r.id === id);
+function getTrainStationsOrdered(routeId) {
+  return getTrainRouteStations(routeId).filter(s => s.name !== 'Конечная');
+}
+
+function resolveTrainStopName(routeId, cp) {
+  if (cp.type_checkpoint !== 1) return null;
+  const ordered = getTrainStationsOrdered(routeId);
+  if (ordered[cp.storage]) return ordered[cp.storage].name;
+  const byId = trainStations.find(s => s.route === routeId && s.id === cp.storage);
+  if (byId) return byId.name;
+  let best = null;
+  let bestD = Infinity;
+  for (const st of ordered) {
+    const d = Math.hypot(st.x - cp.x, st.y - cp.y);
+    if (d < bestD) { bestD = d; best = st; }
+  }
+  return bestD < 250 ? best.name : null;
 }
 
 function escTrainHtml(s) {
@@ -86,6 +109,53 @@ function escTrainHtml(s) {
     .replace(/</g, '&lt;')
     .replace(/>/g, '&gt;')
     .replace(/"/g, '&quot;');
+}
+
+function trainBadgeClass(kind) {
+  return TRAIN_ROUTE_BADGE_CLASS[kind] || 'route-badge-urban';
+}
+
+function fitTrainRouteToView(route) {
+  const cps = getTrainRouteCheckpoints(route.id);
+  const sts = getTrainRouteStations(route.id).filter(s => !(s.x === 0 && s.y === 0));
+  const points = [
+    ...cps.map(c => ({ x: c.x, y: c.y })),
+    ...sts.map(s => ({ x: s.x, y: s.y })),
+  ];
+  if (!points.length) return;
+
+  const xs = points.map(p => p.x);
+  const ys = points.map(p => p.y);
+  const minX = Math.min(...xs), maxX = Math.max(...xs);
+  const minY = Math.min(...ys), maxY = Math.max(...ys);
+  const padX = (maxX - minX) * 0.14 || 500;
+  const padY = (maxY - minY) * 0.14 || 500;
+  const scaleX = canvas.width  / (maxX - minX + padX * 2);
+  const scaleY = canvas.height / (maxY - minY + padY * 2);
+  viewScale = Math.max(0.05, Math.min(20, Math.min(scaleX, scaleY)));
+  viewX = (minX + maxX) / 2 - canvas.width  / 2 / viewScale;
+  viewY = (minY + maxY) / 2 + canvas.height / 2 / viewScale;
+}
+
+function switchTrainSubTab(tab) {
+  trainSubTab = tab;
+  document.getElementById('train-subtab-stations')?.classList.toggle('active', tab === 'stations');
+  document.getElementById('train-subtab-checkpoints')?.classList.toggle('active', tab === 'checkpoints');
+  renderTrainRouteList();
+}
+
+function setTrainFilterStopsOnly(checked) {
+  trainFilterStopsOnly = !!checked;
+  renderTrainRouteList();
+}
+
+function copyTrainCoords(x, y, z) {
+  const text = `${x}, ${y}, ${z}`;
+  navigator.clipboard.writeText(text).then(() => showToast(`Скопировано: ${text}`));
+}
+
+function scrollToTrainDetailRow(selector) {
+  document.querySelector(selector)?.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
 }
 
 function selectTrainRoute(idx) {
@@ -104,22 +174,7 @@ function selectTrainRoute(idx) {
   renderTrainRouteList();
 
   const route = trainRoutes[idx];
-  if (route) {
-    const cps = getTrainRouteCheckpoints(route.id);
-    if (cps.length > 0) {
-      const xs = cps.map(c => c.x);
-      const ys = cps.map(c => c.y);
-      const minX = Math.min(...xs), maxX = Math.max(...xs);
-      const minY = Math.min(...ys), maxY = Math.max(...ys);
-      const padX = (maxX - minX) * 0.12 || 500;
-      const padY = (maxY - minY) * 0.12 || 500;
-      const scaleX = canvas.width  / (maxX - minX + padX * 2);
-      const scaleY = canvas.height / (maxY - minY + padY * 2);
-      viewScale = Math.max(0.05, Math.min(20, Math.min(scaleX, scaleY)));
-      viewX = (minX + maxX) / 2 - canvas.width  / 2 / viewScale;
-      viewY = (minY + maxY) / 2 + canvas.height / 2 / viewScale;
-    }
-  }
+  if (route) fitTrainRouteToView(route);
   draw();
 }
 
@@ -133,12 +188,14 @@ function toggleTrainRouteVisible(idx) {
 function selectTrainCheckpoint(cpId) {
   selectedTrainCheckpointId = selectedTrainCheckpointId === cpId ? null : cpId;
   selectedTrainStationId = null;
+  if (trainSubTab !== 'checkpoints') switchTrainSubTab('checkpoints');
   renderTrainRouteList();
   const cp = trainCheckpoints.find(c => c.id === cpId);
   if (cp) {
-    viewScale = Math.max(viewScale, 1.5);
+    viewScale = Math.max(viewScale, 1.2);
     viewX = cp.x - canvas.width  / 2 / viewScale;
     viewY = cp.y + canvas.height / 2 / viewScale;
+    scrollToTrainDetailRow(`[data-train-cp="${cpId}"]`);
   }
   draw();
 }
@@ -146,24 +203,172 @@ function selectTrainCheckpoint(cpId) {
 function selectTrainStation(stId) {
   selectedTrainStationId = selectedTrainStationId === stId ? null : stId;
   selectedTrainCheckpointId = null;
+  if (trainSubTab !== 'stations') switchTrainSubTab('stations');
   renderTrainRouteList();
   const st = trainStations.find(s => s.id === stId);
-  if (st) {
-    viewScale = Math.max(viewScale, 1.5);
+  if (st && !(st.x === 0 && st.y === 0)) {
+    viewScale = Math.max(viewScale, 1.2);
     viewX = st.x - canvas.width  / 2 / viewScale;
     viewY = st.y + canvas.height / 2 / viewScale;
+    scrollToTrainDetailRow(`[data-train-st="${stId}"]`);
   }
   draw();
 }
 
+function renderTrainSummary(route) {
+  const el = document.getElementById('train-summary');
+  if (!el) return;
+
+  if (!route) {
+    el.innerHTML = '<div class="train-summary-empty">Выберите маршрут, чтобы увидеть станции и чекпоинты</div>';
+    return;
+  }
+
+  const cps = getTrainRouteCheckpoints(route.id);
+  const stations = getTrainStationsOrdered(route.id);
+  const stops = cps.filter(c => c.type_checkpoint === 1);
+  const waypoints = cps.length - stops.length;
+
+  el.innerHTML = `
+    <div><b>${escTrainHtml(route.name)}</b> · маршрут #${route.id}</div>
+    <div>${stations.length} станций БД · ${cps.length} чекпоинтов (${stops.length} ост., ${waypoints} пут.)</div>
+  `;
+}
+
+function renderTrainDetailTools(route) {
+  const el = document.getElementById('train-detail-tools');
+  if (!el) return;
+
+  if (!route) {
+    el.innerHTML = '';
+    return;
+  }
+
+  if (trainSubTab === 'stations') {
+    const count = getTrainStationsOrdered(route.id).length;
+    el.innerHTML = `<span class="train-detail-count">${count} записей train_checks</span>`;
+    return;
+  }
+
+  const cps = getTrainRouteCheckpoints(route.id);
+  const shown = trainFilterStopsOnly ? cps.filter(c => c.type_checkpoint === 1).length : cps.length;
+  el.innerHTML = `
+    <label><input type="checkbox" ${trainFilterStopsOnly ? 'checked' : ''} onchange="setTrainFilterStopsOnly(this.checked)"> Только остановки</label>
+    <span class="train-detail-count">${shown} / ${cps.length}</span>
+  `;
+}
+
+function renderTrainDetailList(route) {
+  const el = document.getElementById('train-detail-list');
+  if (!el) return;
+  el.innerHTML = '';
+
+  if (!route) {
+    el.innerHTML = '<div style="color:var(--text-tertiary);padding:10px;font-size:12px">Список появится после выбора маршрута</div>';
+    return;
+  }
+
+  if (trainSubTab === 'stations') {
+    const stations = getTrainStationsOrdered(route.id);
+    const header = document.createElement('div');
+    header.className = 'cp-list-header';
+    header.innerHTML = `<span style="font-size:11px;color:var(--text-tertiary)">Таблица <b style="color:${route.color}">train_checks</b></span>`;
+    el.appendChild(header);
+
+    stations.forEach((st, i) => {
+      const sel = st.id === selectedTrainStationId;
+      const row = document.createElement('div');
+      row.className = 'cp-row cp-stop' + (sel ? ' cp-selected' : '');
+      row.dataset.trainSt = String(st.id);
+      row.innerHTML = `
+        <div class="cp-row-main" onclick="selectTrainStation(${st.id})">
+          <span class="cp-index">${st.id}</span>
+          <span class="cp-stop-btn active" title="Станция">🚉</span>
+          <span class="train-station-name">${escTrainHtml(st.name)}</span>
+          <span class="train-station-coords">${st.x.toFixed(1)}, ${st.y.toFixed(1)}</span>
+        </div>
+        ${sel ? renderTrainStationEditor(st) : ''}`;
+      el.appendChild(row);
+    });
+    return;
+  }
+
+  let cps = getTrainRouteCheckpoints(route.id);
+  if (trainFilterStopsOnly) cps = cps.filter(c => c.type_checkpoint === 1);
+
+  const header = document.createElement('div');
+  header.className = 'cp-list-header';
+  header.innerHTML = `<span style="font-size:11px;color:var(--text-tertiary)">Таблица <b style="color:${route.color}">checkpoint</b> · type=2</span>`;
+  el.appendChild(header);
+
+  if (!cps.length) {
+    el.innerHTML += '<div style="color:var(--text-tertiary);padding:8px;font-size:12px">Нет чекпоинтов по фильтру</div>';
+    return;
+  }
+
+  cps.forEach((cp, localIdx) => {
+    const isStop = cp.type_checkpoint === 1;
+    const isSelected = cp.id === selectedTrainCheckpointId;
+    const stopName = isStop ? resolveTrainStopName(route.id, cp) : null;
+    const row = document.createElement('div');
+    row.className = 'cp-row' + (isStop ? ' cp-stop' : '') + (isSelected ? ' cp-selected' : '');
+    row.dataset.trainCp = String(cp.id);
+    row.innerHTML = `
+      <div class="cp-row-main" onclick="selectTrainCheckpoint(${cp.id})">
+        <span class="cp-index">#${localIdx + 1}</span>
+        <span class="train-cp-kind ${isStop ? 'stop' : 'way'}">${isStop ? 'ост' : 'путь'}</span>
+        <span class="cp-coords">${stopName ? escTrainHtml(stopName) : `${cp.x.toFixed(1)}, ${cp.y.toFixed(1)}`}</span>
+        ${isStop ? `<span class="cp-storage-badge">S:${cp.storage}</span>` : ''}
+        <span class="cp-storage-badge" style="opacity:0.55">id:${cp.id}</span>
+      </div>
+      ${isSelected ? renderTrainCheckpointEditor(cp, route.id, stopName) : ''}`;
+    el.appendChild(row);
+  });
+}
+
+function renderTrainStationEditor(st) {
+  return `
+    <div class="cp-editor">
+      <div class="cp-editor-grid" style="grid-template-columns:52px 1fr 52px 1fr">
+        <label>CHECK_ID</label><span>${st.id}</span>
+        <label>Маршрут</label><span>${st.route}</span>
+        <label>X</label><span>${st.x}</span>
+        <label>Y</label><span>${st.y}</span>
+        <label>Z</label><span>${st.z}</span>
+      </div>
+      <div class="train-detail-actions">
+        <button class="train-copy-btn" onclick="copyTrainCoords(${st.x}, ${st.y}, ${st.z})">Копировать XYZ</button>
+      </div>
+    </div>`;
+}
+
+function renderTrainCheckpointEditor(cp, routeId, stopName) {
+  return `
+    <div class="cp-editor">
+      ${stopName ? `<div style="font-size:11px;color:#e8a020;margin-bottom:4px">Станция: <b>${escTrainHtml(stopName)}</b></div>` : ''}
+      <div class="cp-editor-grid">
+        <label>ID</label><span>${cp.id}</span>
+        <label>Route</label><span>${cp.route}</span>
+        <label>X</label><span>${cp.x}</span>
+        <label>Y</label><span>${cp.y}</span>
+        <label>Z</label><span>${cp.z}</span>
+        <label>Size</label><span>${cp.size}</span>
+        <label>Storage</label><span>${cp.storage}</span>
+        <label>Type</label><span>${cp.type_checkpoint}</span>
+      </div>
+      <div class="train-detail-actions">
+        <button class="train-copy-btn" onclick="copyTrainCoords(${cp.x}, ${cp.y}, ${cp.z})">Копировать XYZ</button>
+      </div>
+    </div>`;
+}
+
 function renderTrainRouteList() {
   const routeEl = document.getElementById('train-route-list');
-  const stationEl = document.getElementById('train-station-list');
-  const cpEl = document.getElementById('train-checkpoint-list');
   if (!routeEl) return;
 
   routeEl.innerHTML = '';
   const isSingle = selectedTrainRouteIdx !== null && trainRoutes[selectedTrainRouteIdx];
+  routeEl.classList.toggle('route-list--single', !!isSingle);
 
   if (isSingle) {
     const route = trainRoutes[selectedTrainRouteIdx];
@@ -174,7 +379,7 @@ function renderTrainRouteList() {
     const back = document.createElement('div');
     back.className = 'route-back-row';
     back.innerHTML = `<button class="route-back-btn" onclick="selectTrainRoute(${idx})">← Все маршруты</button>
-      <span class="route-stat" style="margin-left:auto">${cps.length}т &nbsp; <span class="route-stops">${stops}ст</span></span>`;
+      <span class="route-stat" style="margin-left:auto">${cps.length}т · <span class="route-stops">${stops}ост</span></span>`;
     routeEl.appendChild(back);
 
     const card = document.createElement('div');
@@ -183,7 +388,7 @@ function renderTrainRouteList() {
       <div class="route-card-header">
         <button class="route-vis-btn" title="Показать/скрыть" onclick="toggleTrainRouteVisible(${idx})" style="color:${route.visible ? route.color : '#555'}">${route.visible ? '●' : '○'}</button>
         <div class="route-card-title">
-          <span class="route-badge route-badge-urban">${TRAIN_ROUTE_KIND_LABELS[route.kind] || 'Поезд'}</span>
+          <span class="route-badge ${trainBadgeClass(route.kind)}">${TRAIN_ROUTE_KIND_LABELS[route.kind] || 'Поезд'}</span>
           <span class="route-name">${escTrainHtml(route.name)}</span>
         </div>
       </div>`;
@@ -192,92 +397,62 @@ function renderTrainRouteList() {
     trainRoutes.forEach((route, idx) => {
       const cps = getTrainRouteCheckpoints(route.id);
       const stops = cps.filter(c => c.type_checkpoint === 1).length;
+      const stations = getTrainStationsOrdered(route.id).length;
       const card = document.createElement('div');
       card.className = 'route-card';
       card.innerHTML = `
         <div class="route-card-header">
-          <button class="route-vis-btn" title="Показать/скрыть" onclick="toggleTrainRouteVisible(${idx})" style="color:${route.visible ? route.color : '#555'}">${route.visible ? '●' : '○'}</button>
+          <button class="route-vis-btn" title="Показать/скрыть" onclick="event.stopPropagation();toggleTrainRouteVisible(${idx})" style="color:${route.visible ? route.color : '#555'}">${route.visible ? '●' : '○'}</button>
           <div class="route-card-title" onclick="selectTrainRoute(${idx})">
-            <span class="route-badge route-badge-urban">${TRAIN_ROUTE_KIND_LABELS[route.kind] || 'Поезд'}</span>
+            <span class="route-badge ${trainBadgeClass(route.kind)}">${TRAIN_ROUTE_KIND_LABELS[route.kind] || 'Поезд'}</span>
             <span class="route-name">${escTrainHtml(route.name)}</span>
           </div>
           <div class="route-card-meta" onclick="selectTrainRoute(${idx})">
+            <span class="route-stat">${stations}ст</span>
             <span class="route-stat">${cps.length}т</span>
-            <span class="route-stat route-stops">${stops}ст</span>
+            <span class="route-stat route-stops">${stops}ост</span>
           </div>
         </div>`;
       routeEl.appendChild(card);
     });
   }
 
-  if (!stationEl || !cpEl) return;
+  const route = isSingle ? trainRoutes[selectedTrainRouteIdx] : null;
+  renderTrainSummary(route);
+  renderTrainDetailTools(route);
+  renderTrainDetailList(route);
+}
 
-  stationEl.innerHTML = '';
-  cpEl.innerHTML = '';
+function hitTestTrainMap(sx, sy) {
+  const routes = selectedTrainRouteIdx !== null
+    ? [trainRoutes[selectedTrainRouteIdx]].filter(Boolean)
+    : trainRoutes.filter(r => r.visible);
 
-  if (!isSingle) {
-    stationEl.innerHTML = '<div style="color:var(--text-tertiary);padding:8px;font-size:12px">Выберите маршрут</div>';
-    cpEl.innerHTML = '<div style="color:var(--text-tertiary);padding:8px;font-size:12px">Выберите маршрут</div>';
-    return;
+  for (const route of routes) {
+    if (selectedTrainRouteIdx === null && !route.visible) continue;
+
+    const cps = getTrainRouteCheckpoints(route.id);
+    for (let i = cps.length - 1; i >= 0; i--) {
+      const cp = cps[i];
+      const s = worldToScreen(cp.x, cp.y);
+      const r = cp.type_checkpoint === 1 ? 10 : 6;
+      if (Math.hypot(sx - s.x, sy - s.y) <= r) {
+        return { kind: 'checkpoint', id: cp.id, cp, route };
+      }
+    }
+
+    if (showTrainChecks) {
+      const stations = getTrainStationsOrdered(route.id);
+      for (let i = stations.length - 1; i >= 0; i--) {
+        const st = stations[i];
+        const s = worldToScreen(st.x, st.y);
+        if (Math.hypot(sx - s.x, sy - s.y) <= 12) {
+          return { kind: 'station', id: st.id, st, route };
+        }
+      }
+    }
   }
-
-  const route = trainRoutes[selectedTrainRouteIdx];
-  const stations = getTrainRouteStations(route.id);
-  const cps = getTrainRouteCheckpoints(route.id);
-
-  const stHeader = document.createElement('div');
-  stHeader.className = 'cp-list-header';
-  stHeader.innerHTML = `<span style="font-size:11px;color:var(--text-tertiary)">Станции <b style="color:${route.color}">train_checks</b></span>`;
-  stationEl.appendChild(stHeader);
-
-  stations.forEach((st, i) => {
-    const sel = st.id === selectedTrainStationId;
-    const row = document.createElement('div');
-    row.className = 'cp-row cp-stop' + (sel ? ' cp-selected' : '');
-    row.innerHTML = `
-      <div class="cp-row-main" onclick="selectTrainStation(${st.id})">
-        <span class="cp-index">#${i + 1}</span>
-        <span class="cp-stop-btn active" title="Станция">🚉</span>
-        <span class="cp-coords">${escTrainHtml(st.name)}</span>
-        <span class="cp-storage-badge" style="margin-left:auto;font-family:var(--font-mono)">${st.x.toFixed(1)}, ${st.y.toFixed(1)}</span>
-      </div>
-      ${sel ? `<div class="cp-editor"><div class="cp-editor-grid">
-        <label>ID</label><span class="field-input" style="border:none;background:transparent;padding:4px 0">${st.id}</span>
-        <label>X</label><span class="field-input" style="border:none;background:transparent;padding:4px 0">${st.x}</span>
-        <label>Y</label><span class="field-input" style="border:none;background:transparent;padding:4px 0">${st.y}</span>
-        <label>Z</label><span class="field-input" style="border:none;background:transparent;padding:4px 0">${st.z}</span>
-      </div></div>` : ''}`;
-    stationEl.appendChild(row);
-  });
-
-  const cpHeader = document.createElement('div');
-  cpHeader.className = 'cp-list-header';
-  cpHeader.innerHTML = `<span style="font-size:11px;color:var(--text-tertiary)">Чекпоинты <b style="color:${route.color}">type=2</b></span>`;
-  cpEl.appendChild(cpHeader);
-
-  cps.forEach((cp, localIdx) => {
-    const isStop = cp.type_checkpoint === 1;
-    const isSelected = cp.id === selectedTrainCheckpointId;
-    const row = document.createElement('div');
-    row.className = 'cp-row' + (isStop ? ' cp-stop' : '') + (isSelected ? ' cp-selected' : '');
-    row.innerHTML = `
-      <div class="cp-row-main" onclick="selectTrainCheckpoint(${cp.id})">
-        <span class="cp-index">#${localIdx + 1}</span>
-        <span class="cp-stop-btn${isStop ? ' active' : ''}" title="${isStop ? 'Станция (type_checkpoint=1)' : 'Путевая точка'}">${isStop ? '🚏' : '·'}</span>
-        <span class="cp-coords">${cp.x.toFixed(1)}, ${cp.y.toFixed(1)}</span>
-        ${isStop ? `<span class="cp-storage-badge">S:${cp.storage}</span>` : ''}
-        <span class="cp-storage-badge" style="margin-left:auto;opacity:0.7">id:${cp.id}</span>
-      </div>
-      ${isSelected ? `<div class="cp-editor"><div class="cp-editor-grid">
-        <label>X</label><span class="field-input" style="border:none;background:transparent;padding:4px 0">${cp.x}</span>
-        <label>Y</label><span class="field-input" style="border:none;background:transparent;padding:4px 0">${cp.y}</span>
-        <label>Z</label><span class="field-input" style="border:none;background:transparent;padding:4px 0">${cp.z}</span>
-        <label>Size</label><span class="field-input" style="border:none;background:transparent;padding:4px 0">${cp.size}</span>
-        <label>Storage</label><span class="field-input" style="border:none;background:transparent;padding:4px 0">${cp.storage}</span>
-        <label>Type CP</label><span class="field-input" style="border:none;background:transparent;padding:4px 0">${cp.type_checkpoint}</span>
-      </div></div>` : ''}`;
-    cpEl.appendChild(row);
-  });
+  return null;
 }
 
 function resetTrainData() {
@@ -288,6 +463,7 @@ function resetTrainData() {
     selectedTrainRouteIdx = null;
     selectedTrainCheckpointId = null;
     selectedTrainStationId = null;
+    trainFilterStopsOnly = false;
     await initTrainData();
     renderTrainRouteList();
     draw();
@@ -316,8 +492,8 @@ function exportTrainRouteSQL() {
 
   openExportModal(
     selectedTrainRouteIdx !== null
-      ? `SQL машинист — ${trainRoutes[selectedTrainRouteIdx].name}`
-      : 'SQL машинист — все маршруты',
+      ? `SQL checkpoint — ${trainRoutes[selectedTrainRouteIdx].name}`
+      : 'SQL checkpoint — все маршруты',
     sql
   );
 }
@@ -350,7 +526,7 @@ function exportTrainStationsSQL() {
 }
 
 function drawTrainRoutes() {
-  if (!showTrainRoutes) return;
+  if (!showTrainRoutes && !showTrainChecks) return;
 
   trainRoutes.forEach(route => {
     if (!route.visible) return;
@@ -362,70 +538,108 @@ function drawTrainRoutes() {
 
     const col = route.color;
     ctx.save();
-    ctx.globalAlpha = 1;
-    ctx.strokeStyle = col;
-    ctx.lineWidth = isSelected ? 3 : 1.5;
-    ctx.beginPath();
-    cps.forEach((cp, i) => {
-      const s = worldToScreen(cp.x, cp.y);
-      if (i === 0) ctx.moveTo(s.x, s.y);
-      else ctx.lineTo(s.x, s.y);
-    });
-    ctx.stroke();
 
-    if (cps.length > 1) {
-      const minLen = isSelected ? 28 : 40;
-      const sz = isSelected ? 8 : 6;
-      for (let i = 1; i < cps.length; i++) {
-        const prev = worldToScreen(cps[i - 1].x, cps[i - 1].y);
-        const curr = worldToScreen(cps[i].x, cps[i].y);
-        drawArrow(ctx, prev, curr, col, sz, minLen);
+    if (showTrainRoutes) {
+      ctx.globalAlpha = isSelected ? 1 : 0.85;
+      ctx.strokeStyle = col;
+      ctx.lineWidth = isSelected ? 3 : 1.5;
+      ctx.beginPath();
+      cps.forEach((cp, i) => {
+        const s = worldToScreen(cp.x, cp.y);
+        if (i === 0) ctx.moveTo(s.x, s.y);
+        else ctx.lineTo(s.x, s.y);
+      });
+      ctx.stroke();
+
+      if (cps.length > 1) {
+        const minLen = isSelected ? 28 : 40;
+        const sz = isSelected ? 8 : 6;
+        for (let i = 1; i < cps.length; i++) {
+          const prev = worldToScreen(cps[i - 1].x, cps[i - 1].y);
+          const curr = worldToScreen(cps[i].x, cps[i].y);
+          drawArrow(ctx, prev, curr, col, sz, minLen);
+        }
       }
     }
 
-    cps.forEach((cp, i) => {
-      const s = worldToScreen(cp.x, cp.y);
-      const stop = cp.type_checkpoint === 1;
-      if (stop && !showTrainStops) return;
-      const sel = cp.id === selectedTrainCheckpointId;
-      const r = sel ? 7 : (stop ? 5 : 3);
-      ctx.fillStyle = stop ? col : 'rgba(255,255,255,0.55)';
-      ctx.strokeStyle = col;
-      ctx.lineWidth = sel ? 2 : 1;
-      ctx.beginPath();
-      ctx.arc(s.x, s.y, r, 0, Math.PI * 2);
-      ctx.fill();
-      ctx.stroke();
-      if (stop && isSelected) {
-        ctx.fillStyle = '#fff';
-        ctx.font = 'bold 10px monospace';
-        ctx.fillText(`S${cp.storage}`, s.x + 8, s.y - 4);
-      }
-      if (!stop && sel) {
-        ctx.fillStyle = '#fff';
-        ctx.font = '9px monospace';
-        ctx.fillText(`#${i + 1}`, s.x + 6, s.y - 4);
-      }
-    });
-
-    if (isSelected) {
-      const stations = getTrainRouteStations(route.id);
-      stations.forEach(st => {
-        if (st.x === 0 && st.y === 0 && st.name === 'Конечная') return;
+    if (showTrainChecks) {
+      getTrainStationsOrdered(route.id).forEach(st => {
         const s = worldToScreen(st.x, st.y);
         const sel = st.id === selectedTrainStationId;
-        ctx.strokeStyle = '#ffd54f';
-        ctx.fillStyle = sel ? 'rgba(255,213,79,0.35)' : 'rgba(255,213,79,0.15)';
+        ctx.fillStyle = sel ? 'rgba(255,213,79,0.45)' : 'rgba(255,213,79,0.2)';
+        ctx.strokeStyle = sel ? '#ffe082' : '#ffd54f';
         ctx.lineWidth = sel ? 2 : 1;
-        const sz = sel ? 10 : 7;
+        const sz = sel ? 9 : 7;
         ctx.beginPath();
         ctx.rect(s.x - sz, s.y - sz, sz * 2, sz * 2);
         ctx.fill();
         ctx.stroke();
-        ctx.fillStyle = '#ffd54f';
-        ctx.font = `bold ${sel ? 11 : 9}px monospace`;
-        ctx.fillText(st.name, s.x + sz + 3, s.y + 3);
+
+        if (isSelected || viewScale > 0.1) {
+          ctx.fillStyle = '#ffe082';
+          ctx.font = `bold ${sel ? 11 : 9}px sans-serif`;
+          ctx.textAlign = 'left';
+          ctx.textBaseline = 'bottom';
+          ctx.fillText(st.name, s.x + sz + 3, s.y - 2);
+        }
       });
+    }
+
+    if (showTrainRoutes) {
+      cps.forEach((cp, i) => {
+        const s = worldToScreen(cp.x, cp.y);
+        const stop = cp.type_checkpoint === 1;
+        if (stop && !showTrainStops) return;
+        const sel = cp.id === selectedTrainCheckpointId;
+        const stopName = stop ? resolveTrainStopName(route.id, cp) : null;
+
+        if (stop) {
+          ctx.beginPath();
+          ctx.arc(s.x, s.y, sel ? 9 : 6, 0, Math.PI * 2);
+          ctx.fillStyle = col;
+          ctx.fill();
+          ctx.strokeStyle = '#ffffff';
+          ctx.lineWidth = 1.5;
+          ctx.stroke();
+
+          if (viewScale > 0.06) {
+            ctx.fillStyle = '#ffffff';
+            ctx.font = `bold ${Math.min(10, Math.max(7, viewScale * 16))}px monospace`;
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            ctx.fillText(String(cp.storage), s.x, s.y);
+          }
+
+          if ((sel || viewScale > 0.14) && stopName) {
+            ctx.fillStyle = '#fff';
+            ctx.font = `bold ${sel ? 10 : 9}px sans-serif`;
+            ctx.textAlign = 'left';
+            ctx.textBaseline = 'top';
+            ctx.fillText(stopName, s.x + 10, s.y + 8);
+          }
+        } else {
+          const r = sel ? 5 : (isSelected ? 3 : 2);
+          ctx.beginPath();
+          ctx.arc(s.x, s.y, r, 0, Math.PI * 2);
+          ctx.fillStyle = col;
+          ctx.fill();
+          if (sel) {
+            ctx.strokeStyle = '#fff';
+            ctx.lineWidth = 1;
+            ctx.stroke();
+          }
+        }
+      });
+
+      if (isSelected || viewScale > 0.12) {
+        const s0 = worldToScreen(cps[0].x, cps[0].y);
+        ctx.fillStyle = col;
+        ctx.font = `bold ${isSelected ? 11 : 9}px sans-serif`;
+        ctx.textAlign = 'left';
+        ctx.textBaseline = 'bottom';
+        ctx.globalAlpha = isSelected ? 1 : 0.75;
+        ctx.fillText(route.name, s0.x + 8, s0.y - 6);
+      }
     }
 
     ctx.restore();
