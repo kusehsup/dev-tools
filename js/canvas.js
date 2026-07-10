@@ -368,9 +368,8 @@ initTrainData().then(() => { renderTrainRouteList(); draw(); });
   document.getElementById(id).style.display = 'none';
 });
 
-// 5. Wire up map image — onload must be set before src so cached images fire correctly
-mapImg.onload = () => draw();
-mapImg.src    = 'assets/Map.png';
+// 5. Load map image (custom PNG from IndexedDB or assets/Map.png)
+initMapImage();
 
 // 6. Initial draw (renders grid + TLs while map may still be loading)
 draw();

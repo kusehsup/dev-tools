@@ -18,6 +18,10 @@ function setMode(m) {
   canvas.style.cursor = cursors[m] || 'crosshair';
 
   document.getElementById('cal-panel').classList.toggle('open', m === 'cal');
+  if (m === 'cal') {
+    document.getElementById('map-panel')?.classList.remove('open');
+    document.getElementById('btn-map-panel')?.classList.remove('active');
+  }
 }
 
 // --- Tabs ---
