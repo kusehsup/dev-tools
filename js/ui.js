@@ -18,17 +18,22 @@ function setMode(m) {
   canvas.style.cursor = cursors[m] || 'crosshair';
 
   document.getElementById('cal-panel').classList.toggle('open', m === 'cal');
+  if (m === 'cal') {
+    document.getElementById('map-panel')?.classList.remove('open');
+    document.getElementById('btn-map-panel')?.classList.remove('active');
+  }
 }
 
 // --- Tabs ---
 function switchTab(t) {
-  const tabs = ['tl', 'zones', 'routes'];
+  const tabs = ['tl', 'zones', 'routes', 'train'];
   document.querySelectorAll('.tab-btn').forEach((b, i) => b.classList.toggle('active', tabs[i] === t));
   document.querySelectorAll('.tab-panel').forEach((p, i) => p.classList.toggle('active', tabs[i] === t));
 
   const isTL     = t === 'tl';
   const isZones  = t === 'zones';
   const isRoutes = t === 'routes';
+  const isTrain  = t === 'train';
 
   // Show/hide mode buttons
   const el_tl       = document.getElementById('mode-tl');
@@ -36,12 +41,14 @@ function switchTab(t) {
   const el_rect     = document.getElementById('mode-zone-rect');
   const el_tlToggles = document.getElementById('tl-toggles');
   const el_rtToggles = document.getElementById('route-toggles');
+  const el_trToggles = document.getElementById('train-toggles');
 
   if (el_tl)        el_tl.style.display        = isTL     ? '' : 'none';
   if (el_poly)      el_poly.style.display       = isZones  ? '' : 'none';
   if (el_rect)      el_rect.style.display       = isZones  ? '' : 'none';
   if (el_tlToggles) el_tlToggles.style.display  = isTL     ? '' : 'none';
   if (el_rtToggles) el_rtToggles.style.display  = isRoutes ? '' : 'none';
+  if (el_trToggles) el_trToggles.style.display  = isTrain  ? '' : 'none';
 
   if (t === 'tl') {
     activeContext = 'tl';
@@ -56,6 +63,11 @@ function switchTab(t) {
     activeContext = 'routes';
     if (['tl','zone-poly','zone-rect'].includes(mode)) setMode('pan');
     drawingZone = null;
+  } else if (t === 'train') {
+    activeContext = 'train';
+    if (['tl','zone-poly','zone-rect'].includes(mode)) setMode('pan');
+    drawingZone = null;
+    cancelAddCheckpointMode?.();
   }
 
   draw();
@@ -68,6 +80,22 @@ function toggleAngles() { showAngles = !showAngles; document.getElementById('btn
 function toggleBusRoutes() { showBusRoutes = !showBusRoutes; document.getElementById('btn-routes-canvas').classList.toggle('on', showBusRoutes); draw(); }
 function toggleShowRoutes() { showBusRoutes = !showBusRoutes; document.getElementById('btn-show-routes').classList.toggle('on', showBusRoutes); draw(); }
 function toggleShowStops()  { showStops    = !showStops;    document.getElementById('btn-show-stops').classList.toggle('on', showStops);  draw(); }
+function toggleShowTrainRoutes() {
+  showTrainRoutes = !showTrainRoutes;
+  document.getElementById('btn-show-train-routes')?.classList.toggle('on', showTrainRoutes);
+  document.getElementById('btn-train-canvas')?.classList.toggle('on', showTrainRoutes);
+  draw();
+}
+function toggleShowTrainStops() {
+  showTrainStops = !showTrainStops;
+  document.getElementById('btn-show-train-stops')?.classList.toggle('on', showTrainStops);
+  draw();
+}
+function toggleShowTrainChecks() {
+  showTrainChecks = !showTrainChecks;
+  document.getElementById('btn-show-train-checks')?.classList.toggle('on', showTrainChecks);
+  draw();
+}
 
 function resetRoutesData() {
   showConfirm('Сбросить все данные маршрутов к исходным из SQL?', async () => {

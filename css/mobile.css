@@ -110,8 +110,9 @@
     font-size: 11px;
   }
 
-  /* Calibration panel full-width on mobile */
-  #cal-panel {
+  /* Calibration / map panels full-width on mobile */
+  #cal-panel,
+  #map-panel {
     left: var(--sp-2);
     right: var(--sp-2);
     width: auto;

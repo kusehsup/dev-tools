@@ -32,6 +32,10 @@ function draw() {
   if (activeContext === 'routes') {
     drawBusRoutes();
   }
+
+  if (activeContext === 'train') {
+    drawTrainRoutes();
+  }
 }
 
 // --- Mouse handlers ---
@@ -74,6 +78,19 @@ canvas.addEventListener('mousedown', e => {
     }
     cancelAddCheckpointMode();
     return;
+  }
+
+  // Train: click checkpoint or station
+  if (activeContext === 'train' && mode === 'pan') {
+    const hit = hitTestTrainMap(e.offsetX, e.offsetY);
+    if (hit?.kind === 'checkpoint') {
+      selectTrainCheckpoint(hit.id);
+      return;
+    }
+    if (hit?.kind === 'station') {
+      selectTrainStation(hit.id);
+      return;
+    }
   }
 
   // Routes: click on existing checkpoint to select
@@ -229,13 +246,33 @@ canvas.addEventListener('mousemove', e => {
 
   // Hover info
   let hovered = false;
-  trafficLights.forEach((tl, i) => {
+
+  if (activeContext === 'train' && !isPanning) {
+    const hit = hitTestTrainMap(e.offsetX, e.offsetY);
+    if (hit?.kind === 'checkpoint') {
+      const cp = hit.cp;
+      const stopName = cp.type_checkpoint === 1 ? resolveTrainStopName(hit.route.id, cp) : null;
+      const label = stopName ? `${stopName} (S:${cp.storage})` : `чекпоинт #${cp.id}`;
+      setInfo(`${hit.route.name} · ${label} · ${cp.x.toFixed(1)}, ${cp.y.toFixed(1)}, ${cp.z.toFixed(1)}`);
+      canvas.style.cursor = 'pointer';
+      hovered = true;
+    } else if (hit?.kind === 'station') {
+      const st = hit.st;
+      setInfo(`${hit.route.name} · станция ${st.name} · CHECK_ID ${st.id} · ${st.x.toFixed(1)}, ${st.y.toFixed(1)}`);
+      canvas.style.cursor = 'pointer';
+      hovered = true;
+    }
+  }
+
+  if (!hovered) {
+    trafficLights.forEach((tl, i) => {
     const s = worldToScreen(tl.x, tl.y);
     if (Math.hypot(e.offsetX - s.x, e.offsetY - s.y) < 18) {
       setInfo(`TL#${i} | ROT_Z:${tl.rotZ}° | ${STATUS_LABEL[tl.status]} | Half:${tl.angleHalf}° | P1:(${tl.areaX1.toFixed(1)},${tl.areaY1.toFixed(1)}) P2:(${tl.areaX2.toFixed(1)},${tl.areaY2.toFixed(1)})`);
       hovered = true;
     }
-  });
+    });
+  }
 
   if (!hovered) {
     const w = screenToWorld(e.offsetX, e.offsetY);
@@ -246,19 +283,22 @@ canvas.addEventListener('mousemove', e => {
     setInfo(modeHints[mode] ?? `x:${w.x.toFixed(1)} y:${w.y.toFixed(1)}`);
   }
 
-  // Cursor for zone point handles
-  if (!draggingTL && !isPanning && showZones) {
-    if (activeContext === 'zones') {
+  // Cursor for zone / train handles
+  if (!draggingTL && !isPanning) {
+    if (activeContext === 'train' && !hovered) {
+      canvas.style.cursor = mode === 'pan' ? 'grab' : 'crosshair';
+    }
+    if (showZones && activeContext === 'zones') {
       const vh = hitTestEditableZoneVertex(e.offsetX, e.offsetY);
       if (vh) {
         canvas.style.cursor = 'grab';
         setInfo(`Вершина ${vh.pointIdx + 1} — тяни чтобы изменить зону`);
         return;
       }
+      const ph = hitTestZonePoints(e.offsetX, e.offsetY);
+      canvas.style.cursor = ph ? 'grab' : (mode === 'pan' ? 'grab' : mode === 'tl' ? 'cell' : 'crosshair');
+      if (ph) setInfo(`P${ph.point} TL#${ph.tlIdx} — тяни чтобы изменить зону`);
     }
-    const ph = hitTestZonePoints(e.offsetX, e.offsetY);
-    canvas.style.cursor = ph ? 'grab' : (mode === 'pan' ? 'grab' : mode === 'tl' ? 'cell' : 'crosshair');
-    if (ph) setInfo(`P${ph.point} TL#${ph.tlIdx} — тяни чтобы изменить зону`);
   }
 });
 
@@ -321,15 +361,15 @@ zones = loadUserZones();
 renderZoneList();
 
 initRoutesData().then(() => { renderRouteList(); draw(); });
+initTrainData().then(() => { renderTrainRouteList(); draw(); });
 
 // 4. Hide zone-specific mode buttons (we start on TL tab)
 ['mode-zone-poly','mode-zone-rect'].forEach(id => {
   document.getElementById(id).style.display = 'none';
 });
 
-// 5. Wire up map image — onload must be set before src so cached images fire correctly
-mapImg.onload = () => draw();
-mapImg.src    = 'assets/Map.png';
+// 5. Load map image (custom PNG from IndexedDB or assets/Map.png)
+initMapImage();
 
 // 6. Initial draw (renders grid + TLs while map may still be loading)
 draw();

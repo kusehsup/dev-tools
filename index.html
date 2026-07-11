@@ -22,6 +22,7 @@
       <button class="tab-btn active" onclick="switchTab('tl')">Светофоры</button>
       <button class="tab-btn"        onclick="switchTab('zones')">Зоны</button>
       <button class="tab-btn"        onclick="switchTab('routes')">Маршруты</button>
+      <button class="tab-btn"        onclick="switchTab('train')">Машинист</button>
     </div>
 
     <!-- Traffic Lights tab -->
@@ -85,6 +86,37 @@
       </div>
     </div>
 
+    <!-- Train driver tab -->
+    <div class="tab-panel" id="tab-train">
+      <div class="routes-section-header">
+        <span class="routes-section-title">🚂 Маршруты машиниста</span>
+        <div class="routes-section-toggles">
+          <button class="toggle on" id="btn-show-train-routes" onclick="toggleShowTrainRoutes()" title="Линии пути">Пути</button>
+          <button class="toggle on" id="btn-show-train-stops"  onclick="toggleShowTrainStops()" title="Остановки checkpoint">Ост.</button>
+          <button class="toggle on" id="btn-show-train-checks" onclick="toggleShowTrainChecks()" title="Станции train_checks">Станц.</button>
+        </div>
+      </div>
+      <div id="train-route-list" class="route-list"></div>
+      <div id="train-detail-panel" class="train-detail-panel">
+        <div id="train-summary" class="train-summary"></div>
+        <div class="zones-subtabs train-subtabs">
+          <button class="zones-subtab active" id="train-subtab-stations" onclick="switchTrainSubTab('stations')">Станции БД</button>
+          <button class="zones-subtab" id="train-subtab-checkpoints" onclick="switchTrainSubTab('checkpoints')">Чекпоинты</button>
+        </div>
+        <div id="train-detail-tools" class="train-detail-tools"></div>
+        <div id="train-detail-list" class="checkpoint-list"></div>
+      </div>
+      <div class="sidebar-footer">
+        <input type="file" id="train-cp-file-input" accept=".sql,.txt,text/plain" hidden onchange="onTrainCheckpointFileSelected(this)">
+        <input type="file" id="train-st-file-input" accept=".sql,.txt,text/plain" hidden onchange="onTrainStationFileSelected(this)">
+        <button class="btn btn-accent" onclick="document.getElementById('train-cp-file-input').click()">⬆ SQL checkpoint</button>
+        <button class="btn btn-accent" onclick="document.getElementById('train-st-file-input').click()">⬆ SQL станции</button>
+        <button class="btn btn-yellow" onclick="exportTrainRouteSQL()">⬇ SQL checkpoint</button>
+        <button class="btn btn-yellow" onclick="exportTrainStationsSQL()">⬇ SQL train_checks</button>
+        <button class="btn btn-red"    onclick="resetTrainData()">↺ Сброс</button>
+      </div>
+    </div>
+
   </div>
 
   <!-- ===================== CANVAS AREA ===================== -->
@@ -110,9 +142,13 @@
       <span id="route-toggles" style="display:none">
         <button class="toggle on" id="btn-routes-canvas" onclick="toggleBusRoutes()">Маршруты</button>
       </span>
+      <span id="train-toggles" style="display:none">
+        <button class="toggle on" id="btn-train-canvas" onclick="toggleShowTrainRoutes()">Поезд</button>
+      </span>
 
       <div class="sep"></div>
       <button class="mode-btn cal" id="mode-cal" onclick="setMode('cal')">⊕ Калибровка</button>
+      <button class="mode-btn map-img" id="btn-map-panel" onclick="toggleMapPanel()">🖼 PNG</button>
     </div>
 
     <!-- Canvas -->
@@ -129,6 +165,19 @@
         </button>
         <div id="cal-result"></div>
         <div id="cal-params"></div>
+      </div>
+
+      <!-- Map PNG panel -->
+      <div id="map-panel">
+        <h4>🖼 Карта (Map.png)</h4>
+        <p>Загрузи PNG вместо <code>assets/Map.png</code>. Файл сохранится в браузере и подставится при следующем открытии.</p>
+        <div id="map-panel-status" class="map-panel-status">Загрузка…</div>
+        <input type="file" id="map-file-input" accept="image/png,.png" hidden onchange="onMapFileSelected(this)">
+        <div class="map-panel-actions">
+          <button class="btn btn-accent" onclick="document.getElementById('map-file-input').click()">⬆ Загрузить PNG</button>
+          <button class="btn btn-yellow" onclick="downloadMapPng()">⬇ Скачать</button>
+          <button class="btn btn-red" onclick="resetMapPng()">↺ Сброс</button>
+        </div>
       </div>
     </div>
 
@@ -200,6 +249,7 @@
 <script src="js/traffic-lights.js"></script>
 <script src="js/zones.js"></script>
 <script src="js/routes.js"></script>
+<script src="js/train-routes.js"></script>
 <script src="js/import-export.js"></script>
 <script src="js/ui.js"></script>
 <script src="js/canvas.js"></script>

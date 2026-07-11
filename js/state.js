@@ -35,6 +35,11 @@ const STORAGE = {
   PARKING:  'tl_parking_zones',
 };
 
+const MAP_IMAGE_DB    = 'hassle_dev_tools';
+const MAP_IMAGE_STORE = 'blobs';
+const MAP_IMAGE_KEY   = 'custom_map_png';
+const DEFAULT_MAP_SRC = 'assets/Map.png';
+
 // --- Viewport ---
 let viewX     = -500;
 let viewY     = -500;
