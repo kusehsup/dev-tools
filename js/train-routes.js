@@ -538,6 +538,7 @@ function parseCheckpointSQL(sql) {
 function applyTrainCheckpointImport(imported) {
   const trainRouteIds = new Set(trainRoutes.map(r => r.id));
   const valid = imported.filter(c =>
+    c.type === 2 &&
     trainRouteIds.has(c.route) &&
     Number.isFinite(c.id) &&
     Number.isFinite(c.x) &&
@@ -551,10 +552,11 @@ function applyTrainCheckpointImport(imported) {
   trainCheckpoints = [...kept, ...valid];
   saveTrainData();
 
+  const trainRows = imported.filter(c => c.type === 2 && trainRouteIds.has(c.route)).length;
   return {
     ok: true,
     imported: valid.length,
-    skipped: imported.length - valid.length,
+    skipped: imported.length - trainRows,
     routes: [...affectedRoutes].sort((a, b) => a - b),
   };
 }
@@ -568,7 +570,7 @@ function importTrainCheckpointsFromSQL(sql) {
 
   const result = applyTrainCheckpointImport(parsed);
   if (!result.ok) {
-    showToast('Нет чекпоинтов для маршрутов машиниста (route 0–2)');
+    showToast('Нет чекпоинтов type=2 для маршрутов 0–2');
     return false;
   }
 
@@ -618,7 +620,7 @@ function exportTrainRouteSQL() {
     ? [trainRoutes[selectedTrainRouteIdx].id]
     : trainRoutes.map(r => r.id);
 
-  const toExport = trainCheckpoints.filter(c => routeIds.includes(c.route));
+  const toExport = trainCheckpoints.filter(c => c.type === 2 && routeIds.includes(c.route));
   if (!toExport.length) {
     showToast('Нет данных для экспорта');
     return;

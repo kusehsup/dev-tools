@@ -196,7 +196,7 @@
   ],
   "checkpoints": [
     {
-      "id": 1680,
+      "id": 5411,
       "type": 2,
       "route": 0,
       "type_checkpoint": 0,
@@ -207,7 +207,7 @@
       "storage": 0
     },
     {
-      "id": 1681,
+      "id": 5412,
       "type": 2,
       "route": 0,
       "type_checkpoint": 0,
@@ -218,7 +218,7 @@
       "storage": 0
     },
     {
-      "id": 1682,
+      "id": 5413,
       "type": 2,
       "route": 0,
       "type_checkpoint": 0,
@@ -229,7 +229,7 @@
       "storage": 0
     },
     {
-      "id": 1683,
+      "id": 5414,
       "type": 2,
       "route": 0,
       "type_checkpoint": 0,
@@ -240,7 +240,7 @@
       "storage": 0
     },
     {
-      "id": 1684,
+      "id": 5415,
       "type": 2,
       "route": 0,
       "type_checkpoint": 1,
@@ -251,7 +251,7 @@
       "storage": 0
     },
     {
-      "id": 1685,
+      "id": 5416,
       "type": 2,
       "route": 0,
       "type_checkpoint": 0,
@@ -262,7 +262,7 @@
       "storage": 0
     },
     {
-      "id": 1686,
+      "id": 5417,
       "type": 2,
       "route": 0,
       "type_checkpoint": 0,
@@ -273,7 +273,7 @@
       "storage": 0
     },
     {
-      "id": 1687,
+      "id": 5418,
       "type": 2,
       "route": 0,
       "type_checkpoint": 0,
@@ -284,7 +284,7 @@
       "storage": 0
     },
     {
-      "id": 1688,
+      "id": 5419,
       "type": 2,
       "route": 0,
       "type_checkpoint": 0,
@@ -295,7 +295,7 @@
       "storage": 0
     },
     {
-      "id": 1689,
+      "id": 5420,
       "type": 2,
       "route": 0,
       "type_checkpoint": 0,
@@ -306,7 +306,7 @@
       "storage": 0
     },
     {
-      "id": 1690,
+      "id": 5421,
       "type": 2,
       "route": 0,
       "type_checkpoint": 0,
@@ -317,7 +317,7 @@
       "storage": 0
     },
     {
-      "id": 1691,
+      "id": 5422,
       "type": 2,
       "route": 0,
       "type_checkpoint": 0,
@@ -328,7 +328,7 @@
       "storage": 0
     },
     {
-      "id": 1692,
+      "id": 5423,
       "type": 2,
       "route": 0,
       "type_checkpoint": 0,
@@ -339,7 +339,7 @@
       "storage": 0
     },
     {
-      "id": 1693,
+      "id": 5424,
       "type": 2,
       "route": 0,
       "type_checkpoint": 0,
@@ -350,7 +350,7 @@
       "storage": 0
     },
     {
-      "id": 1694,
+      "id": 5425,
       "type": 2,
       "route": 0,
       "type_checkpoint": 0,
@@ -361,7 +361,7 @@
       "storage": 0
     },
     {
-      "id": 1695,
+      "id": 5426,
       "type": 2,
       "route": 0,
       "type_checkpoint": 0,
@@ -372,7 +372,7 @@
       "storage": 0
     },
     {
-      "id": 1696,
+      "id": 5427,
       "type": 2,
       "route": 0,
       "type_checkpoint": 1,
@@ -383,7 +383,7 @@
       "storage": 1
     },
     {
-      "id": 1697,
+      "id": 5428,
       "type": 2,
       "route": 0,
       "type_checkpoint": 0,
@@ -394,7 +394,7 @@
       "storage": 0
     },
     {
-      "id": 1698,
+      "id": 5429,
       "type": 2,
       "route": 0,
       "type_checkpoint": 0,
@@ -405,7 +405,7 @@
       "storage": 0
     },
     {
-      "id": 1699,
+      "id": 5430,
       "type": 2,
       "route": 0,
       "type_checkpoint": 0,
@@ -416,7 +416,7 @@
       "storage": 0
     },
     {
-      "id": 1700,
+      "id": 5431,
       "type": 2,
       "route": 0,
       "type_checkpoint": 0,
@@ -427,7 +427,7 @@
       "storage": 0
     },
     {
-      "id": 1701,
+      "id": 5432,
       "type": 2,
       "route": 0,
       "type_checkpoint": 0,
@@ -438,7 +438,7 @@
       "storage": 0
     },
     {
-      "id": 1702,
+      "id": 5433,
       "type": 2,
       "route": 0,
       "type_checkpoint": 0,
@@ -449,7 +449,7 @@
       "storage": 0
     },
     {
-      "id": 1703,
+      "id": 5434,
       "type": 2,
       "route": 0,
       "type_checkpoint": 0,
@@ -460,7 +460,7 @@
       "storage": 0
     },
     {
-      "id": 1704,
+      "id": 5435,
       "type": 2,
       "route": 0,
       "type_checkpoint": 1,
@@ -471,7 +471,7 @@
       "storage": 2
     },
     {
-      "id": 1705,
+      "id": 5436,
       "type": 2,
       "route": 0,
       "type_checkpoint": 0,
@@ -482,7 +482,7 @@
       "storage": 0
     },
     {
-      "id": 1706,
+      "id": 5437,
       "type": 2,
       "route": 0,
       "type_checkpoint": 0,
@@ -493,7 +493,7 @@
       "storage": 0
     },
     {
-      "id": 1707,
+      "id": 5438,
       "type": 2,
       "route": 0,
       "type_checkpoint": 0,
@@ -504,7 +504,7 @@
       "storage": 0
     },
     {
-      "id": 1708,
+      "id": 5439,
       "type": 2,
       "route": 0,
       "type_checkpoint": 0,
@@ -515,7 +515,7 @@
       "storage": 0
     },
     {
-      "id": 1709,
+      "id": 5440,
       "type": 2,
       "route": 0,
       "type_checkpoint": 1,
@@ -526,7 +526,7 @@
       "storage": 3
     },
     {
-      "id": 1710,
+      "id": 5441,
       "type": 2,
       "route": 0,
       "type_checkpoint": 0,
@@ -537,29 +537,29 @@
       "storage": 0
     },
     {
-      "id": 1711,
+      "id": 5442,
       "type": 2,
       "route": 0,
       "type_checkpoint": 0,
-      "x": -1079.0,
+      "x": -1079,
       "y": 2728.26,
       "z": 12.9267,
       "size": 4,
       "storage": 0
     },
     {
-      "id": 1712,
+      "id": 5443,
       "type": 2,
       "route": 0,
       "type_checkpoint": 0,
-      "x": -1254.0,
+      "x": -1254,
       "y": 2648.69,
       "z": 12.8856,
       "size": 4,
       "storage": 0
     },
     {
-      "id": 1713,
+      "id": 5444,
       "type": 2,
       "route": 0,
       "type_checkpoint": 0,
@@ -570,40 +570,40 @@
       "storage": 0
     },
     {
-      "id": 1714,
+      "id": 5445,
       "type": 2,
       "route": 0,
-      "type_checkpoint": 0,
-      "x": -1603.68,
-      "y": 2290.51,
-      "z": 13.2823,
+      "type_checkpoint": 1,
+      "x": -2593.77,
+      "y": 2076.87,
+      "z": 52.38,
       "size": 4,
-      "storage": 0
+      "storage": 4
     },
     {
-      "id": 1715,
+      "id": 5446,
       "type": 2,
       "route": 0,
       "type_checkpoint": 0,
-      "x": -1735.44,
-      "y": 2019.78,
+      "x": -2499.63,
+      "y": 1629.28,
       "z": 13.3856,
       "size": 4,
       "storage": 0
     },
     {
-      "id": 1716,
+      "id": 5447,
       "type": 2,
       "route": 0,
       "type_checkpoint": 0,
-      "x": -2110.95,
-      "y": 1164.53,
+      "x": -2213.43,
+      "y": 1167.88,
       "z": 12.1656,
       "size": 4,
       "storage": 0
     },
     {
-      "id": 1717,
+      "id": 5448,
       "type": 2,
       "route": 0,
       "type_checkpoint": 0,
@@ -614,7 +614,7 @@
       "storage": 0
     },
     {
-      "id": 1718,
+      "id": 5449,
       "type": 2,
       "route": 0,
       "type_checkpoint": 0,
@@ -625,7 +625,7 @@
       "storage": 0
     },
     {
-      "id": 1719,
+      "id": 5450,
       "type": 2,
       "route": 0,
       "type_checkpoint": 0,
@@ -636,7 +636,7 @@
       "storage": 0
     },
     {
-      "id": 1720,
+      "id": 5451,
       "type": 2,
       "route": 0,
       "type_checkpoint": 1,
@@ -644,10 +644,10 @@
       "y": 102.269,
       "z": 12.2606,
       "size": 4,
-      "storage": 4
+      "storage": 5
     },
     {
-      "id": 1721,
+      "id": 5452,
       "type": 2,
       "route": 0,
       "type_checkpoint": 0,
@@ -658,7 +658,7 @@
       "storage": 0
     },
     {
-      "id": 1722,
+      "id": 5453,
       "type": 2,
       "route": 0,
       "type_checkpoint": 0,
@@ -669,7 +669,7 @@
       "storage": 0
     },
     {
-      "id": 1723,
+      "id": 5454,
       "type": 2,
       "route": 0,
       "type_checkpoint": 0,
@@ -680,7 +680,7 @@
       "storage": 0
     },
     {
-      "id": 1724,
+      "id": 5455,
       "type": 2,
       "route": 0,
       "type_checkpoint": 0,
@@ -691,7 +691,7 @@
       "storage": 0
     },
     {
-      "id": 1725,
+      "id": 5456,
       "type": 2,
       "route": 0,
       "type_checkpoint": 0,
@@ -702,7 +702,7 @@
       "storage": 0
     },
     {
-      "id": 1726,
+      "id": 5457,
       "type": 2,
       "route": 0,
       "type_checkpoint": 0,
@@ -713,7 +713,7 @@
       "storage": 0
     },
     {
-      "id": 1727,
+      "id": 5458,
       "type": 2,
       "route": 0,
       "type_checkpoint": 0,
@@ -724,7 +724,7 @@
       "storage": 0
     },
     {
-      "id": 1728,
+      "id": 5459,
       "type": 2,
       "route": 0,
       "type_checkpoint": 0,
@@ -735,18 +735,18 @@
       "storage": 0
     },
     {
-      "id": 1729,
+      "id": 5460,
       "type": 2,
       "route": 0,
-      "type_checkpoint": 0,
-      "x": -2053.24,
-      "y": -2071.01,
+      "type_checkpoint": 1,
+      "x": -2127.94,
+      "y": -1994.12,
       "z": 11.026,
       "size": 4,
-      "storage": 0
+      "storage": 6
     },
     {
-      "id": 1730,
+      "id": 5461,
       "type": 2,
       "route": 0,
       "type_checkpoint": 0,
@@ -757,7 +757,7 @@
       "storage": 0
     },
     {
-      "id": 1731,
+      "id": 5462,
       "type": 2,
       "route": 0,
       "type_checkpoint": 0,
@@ -768,7 +768,7 @@
       "storage": 0
     },
     {
-      "id": 1732,
+      "id": 5463,
       "type": 2,
       "route": 0,
       "type_checkpoint": 0,
@@ -779,7 +779,7 @@
       "storage": 0
     },
     {
-      "id": 1733,
+      "id": 5464,
       "type": 2,
       "route": 0,
       "type_checkpoint": 0,
@@ -790,7 +790,7 @@
       "storage": 0
     },
     {
-      "id": 1734,
+      "id": 5465,
       "type": 2,
       "route": 0,
       "type_checkpoint": 0,
@@ -801,7 +801,7 @@
       "storage": 0
     },
     {
-      "id": 1735,
+      "id": 5466,
       "type": 2,
       "route": 0,
       "type_checkpoint": 0,
@@ -812,7 +812,7 @@
       "storage": 0
     },
     {
-      "id": 1736,
+      "id": 5467,
       "type": 2,
       "route": 0,
       "type_checkpoint": 0,
@@ -823,7 +823,7 @@
       "storage": 0
     },
     {
-      "id": 1737,
+      "id": 5468,
       "type": 2,
       "route": 0,
       "type_checkpoint": 0,
@@ -834,7 +834,7 @@
       "storage": 0
     },
     {
-      "id": 1738,
+      "id": 5469,
       "type": 2,
       "route": 0,
       "type_checkpoint": 0,
@@ -845,18 +845,18 @@
       "storage": 0
     },
     {
-      "id": 1739,
+      "id": 5470,
       "type": 2,
       "route": 0,
       "type_checkpoint": 0,
       "x": 43.0437,
-      "y": -2943.0,
+      "y": -2943,
       "z": 24.5106,
       "size": 4,
       "storage": 0
     },
     {
-      "id": 1740,
+      "id": 5471,
       "type": 2,
       "route": 0,
       "type_checkpoint": 0,
@@ -867,7 +867,7 @@
       "storage": 0
     },
     {
-      "id": 1741,
+      "id": 5472,
       "type": 2,
       "route": 0,
       "type_checkpoint": 0,
@@ -878,7 +878,7 @@
       "storage": 0
     },
     {
-      "id": 1742,
+      "id": 5473,
       "type": 2,
       "route": 0,
       "type_checkpoint": 0,
@@ -889,7 +889,7 @@
       "storage": 0
     },
     {
-      "id": 1743,
+      "id": 5474,
       "type": 2,
       "route": 0,
       "type_checkpoint": 0,
@@ -900,7 +900,7 @@
       "storage": 0
     },
     {
-      "id": 1744,
+      "id": 5475,
       "type": 2,
       "route": 0,
       "type_checkpoint": 0,
@@ -911,7 +911,7 @@
       "storage": 0
     },
     {
-      "id": 1746,
+      "id": 5476,
       "type": 2,
       "route": 1,
       "type_checkpoint": 0,
@@ -922,7 +922,7 @@
       "storage": 0
     },
     {
-      "id": 1747,
+      "id": 5477,
       "type": 2,
       "route": 1,
       "type_checkpoint": 0,
@@ -933,7 +933,7 @@
       "storage": 0
     },
     {
-      "id": 1748,
+      "id": 5478,
       "type": 2,
       "route": 1,
       "type_checkpoint": 0,
@@ -944,7 +944,7 @@
       "storage": 0
     },
     {
-      "id": 1749,
+      "id": 5479,
       "type": 2,
       "route": 1,
       "type_checkpoint": 0,
@@ -955,7 +955,7 @@
       "storage": 0
     },
     {
-      "id": 1750,
+      "id": 5480,
       "type": 2,
       "route": 1,
       "type_checkpoint": 0,
@@ -966,7 +966,7 @@
       "storage": 0
     },
     {
-      "id": 1751,
+      "id": 5481,
       "type": 2,
       "route": 1,
       "type_checkpoint": 0,
@@ -977,7 +977,7 @@
       "storage": 0
     },
     {
-      "id": 1752,
+      "id": 5482,
       "type": 2,
       "route": 1,
       "type_checkpoint": 0,
@@ -988,7 +988,7 @@
       "storage": 0
     },
     {
-      "id": 1753,
+      "id": 5483,
       "type": 2,
       "route": 1,
       "type_checkpoint": 0,
@@ -999,7 +999,7 @@
       "storage": 0
     },
     {
-      "id": 1754,
+      "id": 5484,
       "type": 2,
       "route": 1,
       "type_checkpoint": 0,
@@ -1010,7 +1010,7 @@
       "storage": 0
     },
     {
-      "id": 1755,
+      "id": 5485,
       "type": 2,
       "route": 1,
       "type_checkpoint": 0,
@@ -1021,7 +1021,7 @@
       "storage": 0
     },
     {
-      "id": 1756,
+      "id": 5486,
       "type": 2,
       "route": 1,
       "type_checkpoint": 0,
@@ -1032,7 +1032,7 @@
       "storage": 0
     },
     {
-      "id": 1757,
+      "id": 5487,
       "type": 2,
       "route": 1,
       "type_checkpoint": 0,
@@ -1043,7 +1043,7 @@
       "storage": 0
     },
     {
-      "id": 1758,
+      "id": 5488,
       "type": 2,
       "route": 1,
       "type_checkpoint": 0,
@@ -1054,7 +1054,7 @@
       "storage": 0
     },
     {
-      "id": 1759,
+      "id": 5489,
       "type": 2,
       "route": 1,
       "type_checkpoint": 0,
@@ -1065,7 +1065,7 @@
       "storage": 0
     },
     {
-      "id": 1760,
+      "id": 5490,
       "type": 2,
       "route": 1,
       "type_checkpoint": 0,
@@ -1076,7 +1076,7 @@
       "storage": 0
     },
     {
-      "id": 1761,
+      "id": 5491,
       "type": 2,
       "route": 1,
       "type_checkpoint": 0,
@@ -1087,7 +1087,7 @@
       "storage": 0
     },
     {
-      "id": 1762,
+      "id": 5492,
       "type": 2,
       "route": 1,
       "type_checkpoint": 0,
@@ -1098,7 +1098,7 @@
       "storage": 0
     },
     {
-      "id": 1763,
+      "id": 5493,
       "type": 2,
       "route": 1,
       "type_checkpoint": 0,
@@ -1109,7 +1109,7 @@
       "storage": 0
     },
     {
-      "id": 1764,
+      "id": 5494,
       "type": 2,
       "route": 1,
       "type_checkpoint": 0,
@@ -1120,7 +1120,7 @@
       "storage": 0
     },
     {
-      "id": 1765,
+      "id": 5495,
       "type": 2,
       "route": 1,
       "type_checkpoint": 0,
@@ -1131,7 +1131,7 @@
       "storage": 0
     },
     {
-      "id": 1766,
+      "id": 5496,
       "type": 2,
       "route": 1,
       "type_checkpoint": 0,
@@ -1142,10 +1142,10 @@
       "storage": 0
     },
     {
-      "id": 1767,
+      "id": 5497,
       "type": 2,
       "route": 1,
-      "type_checkpoint": 0,
+      "type_checkpoint": 1,
       "x": -2223.86,
       "y": -1868.57,
       "z": 11.1356,
@@ -1153,7 +1153,7 @@
       "storage": 0
     },
     {
-      "id": 1768,
+      "id": 5498,
       "type": 2,
       "route": 1,
       "type_checkpoint": 0,
@@ -1164,7 +1164,7 @@
       "storage": 0
     },
     {
-      "id": 1769,
+      "id": 5499,
       "type": 2,
       "route": 1,
       "type_checkpoint": 0,
@@ -1175,7 +1175,7 @@
       "storage": 0
     },
     {
-      "id": 1770,
+      "id": 5500,
       "type": 2,
       "route": 1,
       "type_checkpoint": 0,
@@ -1186,7 +1186,7 @@
       "storage": 0
     },
     {
-      "id": 1771,
+      "id": 5501,
       "type": 2,
       "route": 1,
       "type_checkpoint": 0,
@@ -1197,7 +1197,7 @@
       "storage": 0
     },
     {
-      "id": 1772,
+      "id": 5502,
       "type": 2,
       "route": 1,
       "type_checkpoint": 0,
@@ -1208,7 +1208,7 @@
       "storage": 0
     },
     {
-      "id": 1773,
+      "id": 5503,
       "type": 2,
       "route": 1,
       "type_checkpoint": 0,
@@ -1219,7 +1219,7 @@
       "storage": 0
     },
     {
-      "id": 1774,
+      "id": 5504,
       "type": 2,
       "route": 1,
       "type_checkpoint": 0,
@@ -1230,7 +1230,7 @@
       "storage": 0
     },
     {
-      "id": 1775,
+      "id": 5505,
       "type": 2,
       "route": 1,
       "type_checkpoint": 0,
@@ -1241,7 +1241,7 @@
       "storage": 0
     },
     {
-      "id": 1776,
+      "id": 5506,
       "type": 2,
       "route": 1,
       "type_checkpoint": 1,
@@ -1249,10 +1249,10 @@
       "y": 172.088,
       "z": 12.2606,
       "size": 4,
-      "storage": 0
+      "storage": 1
     },
     {
-      "id": 1777,
+      "id": 5507,
       "type": 2,
       "route": 1,
       "type_checkpoint": 0,
@@ -1263,7 +1263,7 @@
       "storage": 0
     },
     {
-      "id": 1778,
+      "id": 5508,
       "type": 2,
       "route": 1,
       "type_checkpoint": 0,
@@ -1274,7 +1274,7 @@
       "storage": 0
     },
     {
-      "id": 1779,
+      "id": 5509,
       "type": 2,
       "route": 1,
       "type_checkpoint": 0,
@@ -1285,7 +1285,7 @@
       "storage": 0
     },
     {
-      "id": 1780,
+      "id": 5510,
       "type": 2,
       "route": 1,
       "type_checkpoint": 0,
@@ -1296,62 +1296,62 @@
       "storage": 0
     },
     {
-      "id": 1781,
+      "id": 5511,
       "type": 2,
       "route": 1,
       "type_checkpoint": 0,
-      "x": -2179.44,
-      "y": 1039.56,
+      "x": -2213.93,
+      "y": 1045.17,
       "z": 12.1874,
       "size": 4,
       "storage": 0
     },
     {
-      "id": 1782,
+      "id": 5512,
       "type": 2,
       "route": 1,
       "type_checkpoint": 0,
-      "x": -2068.08,
-      "y": 1251.05,
+      "x": -2217.59,
+      "y": 1249.44,
       "z": 12.2885,
       "size": 4,
       "storage": 0
     },
     {
-      "id": 1783,
+      "id": 5513,
       "type": 2,
       "route": 1,
       "type_checkpoint": 0,
-      "x": -1637.99,
-      "y": 2223.41,
-      "z": 13.3856,
+      "x": -2539.16,
+      "y": 1710.29,
+      "z": 24.0035,
       "size": 4,
       "storage": 0
     },
     {
-      "id": 1784,
+      "id": 5514,
+      "type": 2,
+      "route": 1,
+      "type_checkpoint": 1,
+      "x": -2538.77,
+      "y": 2244.92,
+      "z": 52.4002,
+      "size": 4,
+      "storage": 2
+    },
+    {
+      "id": 5515,
       "type": 2,
       "route": 1,
       "type_checkpoint": 0,
-      "x": -1513.3,
-      "y": 2405.44,
-      "z": 13.2362,
+      "x": -2053.78,
+      "y": 2348.15,
+      "z": 48.6901,
       "size": 4,
       "storage": 0
     },
     {
-      "id": 1785,
-      "type": 2,
-      "route": 1,
-      "type_checkpoint": 0,
-      "x": -1348.09,
-      "y": 2572.72,
-      "z": 13.0106,
-      "size": 4,
-      "storage": 0
-    },
-    {
-      "id": 1786,
+      "id": 5516,
       "type": 2,
       "route": 1,
       "type_checkpoint": 0,
@@ -1362,7 +1362,7 @@
       "storage": 0
     },
     {
-      "id": 1787,
+      "id": 5517,
       "type": 2,
       "route": 1,
       "type_checkpoint": 0,
@@ -1373,7 +1373,7 @@
       "storage": 0
     },
     {
-      "id": 1788,
+      "id": 5518,
       "type": 2,
       "route": 1,
       "type_checkpoint": 0,
@@ -1384,18 +1384,18 @@
       "storage": 0
     },
     {
-      "id": 1789,
+      "id": 5519,
       "type": 2,
       "route": 1,
       "type_checkpoint": 1,
       "x": 377.683,
-      "y": 2773.0,
+      "y": 2773,
       "z": 12.8856,
       "size": 4,
-      "storage": 1
+      "storage": 3
     },
     {
-      "id": 1790,
+      "id": 5520,
       "type": 2,
       "route": 1,
       "type_checkpoint": 0,
@@ -1406,7 +1406,7 @@
       "storage": 0
     },
     {
-      "id": 1791,
+      "id": 5521,
       "type": 2,
       "route": 1,
       "type_checkpoint": 0,
@@ -1417,7 +1417,7 @@
       "storage": 0
     },
     {
-      "id": 1792,
+      "id": 5522,
       "type": 2,
       "route": 1,
       "type_checkpoint": 0,
@@ -1428,7 +1428,7 @@
       "storage": 0
     },
     {
-      "id": 1793,
+      "id": 5523,
       "type": 2,
       "route": 1,
       "type_checkpoint": 0,
@@ -1439,7 +1439,7 @@
       "storage": 0
     },
     {
-      "id": 1794,
+      "id": 5524,
       "type": 2,
       "route": 1,
       "type_checkpoint": 1,
@@ -1447,10 +1447,10 @@
       "y": 2148.35,
       "z": 14.3856,
       "size": 4,
-      "storage": 2
+      "storage": 4
     },
     {
-      "id": 1795,
+      "id": 5525,
       "type": 2,
       "route": 1,
       "type_checkpoint": 0,
@@ -1461,7 +1461,7 @@
       "storage": 0
     },
     {
-      "id": 1796,
+      "id": 5526,
       "type": 2,
       "route": 1,
       "type_checkpoint": 0,
@@ -1472,7 +1472,7 @@
       "storage": 0
     },
     {
-      "id": 1797,
+      "id": 5527,
       "type": 2,
       "route": 1,
       "type_checkpoint": 0,
@@ -1483,7 +1483,7 @@
       "storage": 0
     },
     {
-      "id": 1798,
+      "id": 5528,
       "type": 2,
       "route": 1,
       "type_checkpoint": 0,
@@ -1494,7 +1494,7 @@
       "storage": 0
     },
     {
-      "id": 1799,
+      "id": 5529,
       "type": 2,
       "route": 1,
       "type_checkpoint": 0,
@@ -1505,7 +1505,7 @@
       "storage": 0
     },
     {
-      "id": 1800,
+      "id": 5530,
       "type": 2,
       "route": 1,
       "type_checkpoint": 0,
@@ -1516,7 +1516,7 @@
       "storage": 0
     },
     {
-      "id": 1801,
+      "id": 5531,
       "type": 2,
       "route": 1,
       "type_checkpoint": 0,
@@ -1527,7 +1527,7 @@
       "storage": 0
     },
     {
-      "id": 1802,
+      "id": 5532,
       "type": 2,
       "route": 1,
       "type_checkpoint": 1,
@@ -1535,10 +1535,10 @@
       "y": 560.847,
       "z": 15.7767,
       "size": 4,
-      "storage": 3
+      "storage": 5
     },
     {
-      "id": 1803,
+      "id": 5533,
       "type": 2,
       "route": 1,
       "type_checkpoint": 0,
@@ -1549,7 +1549,7 @@
       "storage": 0
     },
     {
-      "id": 1804,
+      "id": 5534,
       "type": 2,
       "route": 1,
       "type_checkpoint": 0,
@@ -1560,7 +1560,7 @@
       "storage": 0
     },
     {
-      "id": 1805,
+      "id": 5535,
       "type": 2,
       "route": 1,
       "type_checkpoint": 0,
@@ -1571,7 +1571,7 @@
       "storage": 0
     },
     {
-      "id": 1806,
+      "id": 5536,
       "type": 2,
       "route": 1,
       "type_checkpoint": 0,
@@ -1582,7 +1582,7 @@
       "storage": 0
     },
     {
-      "id": 1807,
+      "id": 5537,
       "type": 2,
       "route": 1,
       "type_checkpoint": 0,
@@ -1593,7 +1593,7 @@
       "storage": 0
     },
     {
-      "id": 1808,
+      "id": 5538,
       "type": 2,
       "route": 1,
       "type_checkpoint": 0,
@@ -1604,7 +1604,7 @@
       "storage": 0
     },
     {
-      "id": 1809,
+      "id": 5539,
       "type": 2,
       "route": 1,
       "type_checkpoint": 0,
@@ -1615,7 +1615,7 @@
       "storage": 0
     },
     {
-      "id": 1810,
+      "id": 5540,
       "type": 2,
       "route": 1,
       "type_checkpoint": 0,
@@ -1626,7 +1626,7 @@
       "storage": 0
     },
     {
-      "id": 1811,
+      "id": 5541,
       "type": 2,
       "route": 1,
       "type_checkpoint": 0,
@@ -1637,7 +1637,7 @@
       "storage": 0
     },
     {
-      "id": 1812,
+      "id": 5542,
       "type": 2,
       "route": 1,
       "type_checkpoint": 1,
@@ -1645,10 +1645,10 @@
       "y": -2110.75,
       "z": 22.4213,
       "size": 4,
-      "storage": 4
+      "storage": 6
     },
     {
-      "id": 1813,
+      "id": 5543,
       "type": 2,
       "route": 1,
       "type_checkpoint": 0,
@@ -1659,7 +1659,7 @@
       "storage": 0
     },
     {
-      "id": 1814,
+      "id": 5544,
       "type": 2,
       "route": 1,
       "type_checkpoint": 0,
@@ -1670,7 +1670,7 @@
       "storage": 0
     },
     {
-      "id": 1815,
+      "id": 5545,
       "type": 2,
       "route": 1,
       "type_checkpoint": 0,
@@ -1916,7 +1916,7 @@
       "type": 2,
       "route": 2,
       "type_checkpoint": 1,
-      "x": 295.0,
+      "x": 295,
       "y": 1789.8,
       "z": -30.4894,
       "size": 3,
