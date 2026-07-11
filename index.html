@@ -108,7 +108,9 @@
       </div>
       <div class="sidebar-footer">
         <input type="file" id="train-cp-file-input" accept=".sql,.txt,text/plain" hidden onchange="onTrainCheckpointFileSelected(this)">
+        <input type="file" id="train-st-file-input" accept=".sql,.txt,text/plain" hidden onchange="onTrainStationFileSelected(this)">
         <button class="btn btn-accent" onclick="document.getElementById('train-cp-file-input').click()">⬆ SQL checkpoint</button>
+        <button class="btn btn-accent" onclick="document.getElementById('train-st-file-input').click()">⬆ SQL станции</button>
         <button class="btn btn-yellow" onclick="exportTrainRouteSQL()">⬇ SQL checkpoint</button>
         <button class="btn btn-yellow" onclick="exportTrainStationsSQL()">⬇ SQL train_checks</button>
         <button class="btn btn-red"    onclick="resetTrainData()">↺ Сброс</button>

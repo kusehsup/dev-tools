@@ -84,8 +84,13 @@ function getTrainRouteStations(routeId) {
   return trainStations.filter(s => s.route === routeId);
 }
 
+function isTrainTerminalStation(st) {
+  return st.name === 'Конечная' || st.name === 'Копичная' ||
+    (st.x === 0 && st.y === 0 && st.z === 0);
+}
+
 function getTrainStationsOrdered(routeId) {
-  return getTrainRouteStations(routeId).filter(s => s.name !== 'Конечная');
+  return getTrainRouteStations(routeId).filter(s => !isTrainTerminalStation(s));
 }
 
 function resolveTrainStopName(routeId, cp) {
@@ -589,6 +594,132 @@ function importTrainCheckpointsFromSQL(sql) {
   const skipNote = result.skipped ? `, пропущено ${result.skipped}` : '';
   showToast(`Импортировано ${result.imported} чекпоинтов (${routeNames})${skipNote}`);
   return true;
+}
+
+function parseTrainChecksSQL(sql) {
+  const rows = [];
+  const insertRe = /INSERT\s+INTO\s+`?train_checks`?\s*\(([^)]+)\)\s*VALUES\s*/gi;
+  let match;
+
+  while ((match = insertRe.exec(sql)) !== null) {
+    const cols = match[1].split(',').map(c => c.trim().replace(/`/g, '').toLowerCase());
+    const rest = sql.slice(match.index + match[0].length);
+    let end = rest.indexOf(';');
+    if (end === -1) end = rest.length;
+    const valuesBlock = rest.slice(0, end);
+
+    const tupleRe = /\(([^()]*)\)/g;
+    let tupleMatch;
+    while ((tupleMatch = tupleRe.exec(valuesBlock)) !== null) {
+      const vals = parseSqlTupleValues('(' + tupleMatch[1] + ')');
+      const raw = {};
+      cols.forEach((col, i) => { raw[col] = vals[i]; });
+
+      const name = raw.check_name ?? raw.checkname;
+      const route = raw.check_route ?? raw.checkroute;
+      const x = raw.check_station_x ?? raw.checkstationx;
+      const y = raw.check_station_y ?? raw.checkstationy;
+      const z = raw.check_station_z ?? raw.checkstationz;
+      const id = raw.check_id ?? raw.checkid;
+
+      if (name == null || route == null) continue;
+      rows.push({
+        id: id != null ? +id : null,
+        name: String(name),
+        route: +route,
+        x: +x,
+        y: +y,
+        z: +z,
+      });
+    }
+  }
+
+  return rows;
+}
+
+function applyTrainStationImport(imported) {
+  const trainRouteIds = new Set(trainRoutes.map(r => r.id));
+  const valid = imported.filter(s =>
+    trainRouteIds.has(s.route) &&
+    s.name &&
+    Number.isFinite(s.x) &&
+    Number.isFinite(s.y) &&
+    Number.isFinite(s.z)
+  );
+
+  if (!valid.length) return { ok: false, reason: 'no_rows' };
+
+  const affectedRoutes = new Set(valid.map(s => s.route));
+  const kept = trainStations.filter(s => !affectedRoutes.has(s.route));
+  const byRoute = {};
+  for (const s of [...kept, ...valid]) {
+    (byRoute[s.route] ||= []).push({ ...s });
+  }
+  trainStations = [0, 1, 2]
+    .flatMap(r => byRoute[r] || [])
+    .map((s, i) => ({ ...s, id: i + 1 }));
+  saveTrainData();
+
+  return {
+    ok: true,
+    imported: valid.length,
+    skipped: imported.length - valid.length,
+    routes: [...affectedRoutes].sort((a, b) => a - b),
+  };
+}
+
+function importTrainStationsFromSQL(sql) {
+  const parsed = parseTrainChecksSQL(sql);
+  if (!parsed.length) {
+    showToast('В SQL не найдено INSERT INTO train_checks');
+    return false;
+  }
+
+  const result = applyTrainStationImport(parsed);
+  if (!result.ok) {
+    showToast('Нет станций для маршрутов 0–2');
+    return false;
+  }
+
+  selectedTrainStationId = null;
+  if (selectedTrainRouteIdx !== null) {
+    const route = trainRoutes[selectedTrainRouteIdx];
+    if (route && result.routes.includes(route.id)) fitTrainRouteToView(route);
+  }
+  if (trainSubTab !== 'stations') switchTrainSubTab('stations');
+  renderTrainRouteList();
+  draw();
+
+  const routeNames = result.routes
+    .map(id => trainRoutes.find(r => r.id === id)?.name || `#${id}`)
+    .join(', ');
+  const skipNote = result.skipped ? `, пропущено ${result.skipped}` : '';
+  showToast(`Импортировано ${result.imported} станций (${routeNames})${skipNote}`);
+  return true;
+}
+
+function onTrainStationFileSelected(input) {
+  const file = input.files?.[0];
+  input.value = '';
+  if (!file) return;
+
+  const name = file.name.toLowerCase();
+  if (!name.endsWith('.sql') && !name.endsWith('.txt')) {
+    showToast('Нужен файл .sql с INSERT INTO train_checks');
+    return;
+  }
+
+  const reader = new FileReader();
+  reader.onload = () => {
+    const text = String(reader.result || '');
+    if (!/INSERT\s+INTO\s+`?train_checks`?/i.test(text)) {
+      showToast('Файл не содержит INSERT INTO train_checks');
+      return;
+    }
+    importTrainStationsFromSQL(text);
+  };
+  reader.onerror = () => showToast('Ошибка чтения файла');
+  reader.readAsText(file, 'utf-8');
 }
 
 function onTrainCheckpointFileSelected(input) {
