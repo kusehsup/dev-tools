@@ -226,11 +226,15 @@ function initZoneTypes() {
     exportButtons: i => exportChipRow([[`exportSingleTerritory(${i})`, 'zones.txt']]),
   });
 
-  if (typeof registerAllCustomZoneTypes === 'function') {
-    registerAllCustomZoneTypes();
+  try {
+    if (typeof registerAllCustomZoneTypes === 'function') {
+      registerAllCustomZoneTypes();
+    }
+  } catch (err) {
+    console.error('custom zone types failed to register', err);
   }
 
-  if (!getZoneType(zonesSubTab)) zonesSubTab = 'user';
+  if (!getZoneType(zonesSubTab)) zonesSubTab = getZoneType('green') ? 'green' : 'user';
   renderZoneTypeChrome();
 }
 

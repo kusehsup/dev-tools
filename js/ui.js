@@ -17,7 +17,11 @@ function setMode(m) {
   const cursors = { pan: 'grab', tl: 'cell', cal: 'crosshair' };
   canvas.style.cursor = cursors[m] || 'crosshair';
 
-  document.getElementById('cal-panel').classList.toggle('open', m === 'cal');
+  document.getElementById('cal-panel')?.classList.toggle('open', m === 'cal');
+  if (m === 'cal') {
+    document.getElementById('map-panel')?.classList.remove('open');
+    document.getElementById('btn-map-panel')?.classList.remove('active');
+  }
 }
 
 // --- Tabs ---
@@ -53,7 +57,7 @@ function switchTab(t) {
     activeContext = 'zones';
     if (mode === 'tl') setMode('pan');
     cancelAddCheckpointMode?.();
-    switchZonesSubTab(zonesSubTab || 'user');
+    switchZonesSubTab(zonesSubTab || 'green');
   } else if (t === 'routes') {
     activeContext = 'routes';
     if (['tl','zone-poly','zone-rect'].includes(mode)) setMode('pan');
