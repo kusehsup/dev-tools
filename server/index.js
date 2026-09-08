@@ -57,7 +57,10 @@ function writeMeta(meta) {
 }
 
 function requireUploadAuth(req, res, next) {
-  if (!UPLOAD_TOKEN) return next();
+  // Uploads replace the global map — require MAP_UPLOAD_TOKEN (never open by default).
+  if (!UPLOAD_TOKEN) {
+    return res.status(403).json({ ok: false, error: 'Загрузка отключена: задайте MAP_UPLOAD_TOKEN на сервере' });
+  }
   const header = req.get('x-upload-token') || '';
   const query = req.query.token || '';
   const bodyToken = req.body?.token || '';
