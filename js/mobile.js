@@ -135,6 +135,7 @@
 
   canvas.addEventListener('touchstart', e => {
     e.preventDefault();
+    cancelFocusAnimation?.();
     if (e.touches.length === 2) {
       lastTouchDist = getTouchDist(e.touches);
       lastTouchMid  = getTouchMid(e.touches);
