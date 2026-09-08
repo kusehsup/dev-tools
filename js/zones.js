@@ -350,9 +350,12 @@ function renderZoneList() {
               ${typeOpts}
             </select>
           </div>
-        </div>
-        <button class="zone-export-btn" onclick="event.stopPropagation();focusZone(${i})">На карте</button>`;
+        </div>`;
     }
+
+    const focusBtn = z.isTerritoryZone
+      ? `<button class="zone-export-btn" onclick="event.stopPropagation();focusZone(${i})">На карте</button>`
+      : '';
 
     const exportBtns = z.isParkingZone
       ? `<div style="display:flex;gap:6px;flex-wrap:wrap">
@@ -387,7 +390,7 @@ function renderZoneList() {
           <span>${escapeHtmlAttr(z.name)}</span>
           ${kindBadge}
         </div>
-        ${removeBtn}
+        <div style="display:flex;align-items:center;gap:4px">${focusBtn}${removeBtn}</div>
       </div>
       <div class="zone-card-meta">${z.type === 'rect' ? 'Прямоугольник' : `Полигон · ${ptCount} вершин`}</div>
       ${gzExtra}
@@ -423,9 +426,23 @@ function renderZoneList() {
     empty.textContent = showParking
       ? (parkingZonesLoaded ? 'Нет зон парковщика — нарисуй полигон' : 'Нажми «Показать на карте»')
       : showTerritory
-      ? (territoryZonesLoaded ? 'Нет территорий — нарисуй полигон или сбрось к исходным' : 'Нажми «Показать на карте»')
+      ? ((territorySearch || '').trim()
+          ? `Ничего не найдено по «${territorySearch.trim()}»`
+          : (territoryZonesLoaded ? 'Нет территорий — нарисуй полигон или сбрось к исходным' : 'Нажми «Показать на карте»'))
       : 'Нет своих зон — нарисуй полигон или прямоугольник';
     el.appendChild(empty);
+  }
+
+  const countEl = document.getElementById('territory-count');
+  if (countEl) {
+    const total = zones.filter(z => z.isTerritoryZone).length;
+    const shown = showTerritory
+      ? zones.filter(z => z.isTerritoryZone && territoryCardVisible(z)).length
+      : 0;
+    const q = (territorySearch || '').trim();
+    countEl.textContent = showTerritory
+      ? (q ? `Найдено ${shown} из ${total}` : `${shown} территорий`)
+      : '';
   }
 }
 

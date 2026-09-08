@@ -50,7 +50,8 @@
           <button class="territory-filter-btn" id="territory-filter-zone" onclick="setTerritoryFilter('zone')">Районы</button>
         </div>
         <input class="field-input" id="territory-search" type="search" placeholder="Поиск по названию…"
-          oninput="setTerritorySearch(this.value)">
+          oninput="setTerritorySearch(this.value)" onkeyup="setTerritorySearch(this.value)">
+        <div class="zone-card-meta" id="territory-count"></div>
       </div>
       <div id="zone-list"></div>
       <div class="sidebar-footer" id="zones-footer-user">
