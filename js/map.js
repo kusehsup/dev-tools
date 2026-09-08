@@ -256,11 +256,13 @@ function drawVisibleTiles(corners) {
       const iy1 = (ly + srcH) / scale;
       const p0 = imagePxToScreen(ix0, iy0, corners);
       const p1 = imagePxToScreen(ix1, iy1, corners);
-      ctx.drawImage(
-        img,
-        0, 0, srcW, srcH,
-        p0.x, p0.y, p1.x - p0.x, p1.y - p0.y
-      );
+      const dw = p1.x - p0.x, dh = p1.y - p0.y;
+      // Prefer crisp pixels when a source tile is magnified on screen
+      const magnified = Math.abs(dw) > srcW * 1.15 || Math.abs(dh) > srcH * 1.15;
+      ctx.imageSmoothingEnabled = !magnified;
+      if (!magnified) ctx.imageSmoothingQuality = 'high';
+      ctx.drawImage(img, 0, 0, srcW, srcH, p0.x, p0.y, dw, dh);
+      ctx.imageSmoothingEnabled = true;
     }
   }
 }
