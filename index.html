@@ -156,8 +156,8 @@
         <h4>Карта на сервере</h4>
         <p>Загрузи PNG — сервер нарежет тайлы и сохранит их глобально для всех.</p>
         <div id="map-panel-status" class="map-panel-status">Загрузка…</div>
-        <label class="ui-label" for="map-upload-token">Токен загрузки (если задан на сервере)</label>
-        <input class="ui-input" id="map-upload-token" type="password" placeholder="опционально" autocomplete="off">
+        <label class="ui-label" for="map-upload-token">Токен загрузки (нужен для сохранения на сервер)</label>
+        <input class="ui-input" id="map-upload-token" type="password" placeholder="из /etc/dev-tools-api.env" autocomplete="off">
         <input type="file" id="map-file-input" accept="image/png,.png" hidden onchange="onServerMapFileSelected(this)">
         <div class="map-panel-actions">
           <button class="ui-btn ui-btn-accent" onclick="document.getElementById('map-file-input').click()">Загрузить PNG на сервер</button>
