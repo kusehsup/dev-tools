@@ -116,7 +116,7 @@ canvas.addEventListener('mousedown', e => {
       const hit = hitTestZone(w.x, w.y);
       if (hit >= 0) {
         const z = zones[hit];
-        const wantTab = z.isParkingZone ? 'parking' : 'user';
+        const wantTab = zoneSubTabOf(z);
         if (zonesSubTab !== wantTab) switchZonesSubTab(wantTab);
         selectedZoneIdx = hit;
         renderZoneList();
@@ -282,8 +282,7 @@ canvas.addEventListener('mouseup', e => {
 
   if (wasDraggingTL || wasDraggingPoint) saveTLState();
   if (wasDraggingVertex && draggedZone) {
-    if (draggedZone.isParkingZone) saveParkingZones();
-    else saveUserZones();
+    persistEditedZone(draggedZone);
     renderZoneList();
   }
 });

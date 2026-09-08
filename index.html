@@ -40,7 +40,17 @@
     <div class="tab-panel" id="tab-zones">
       <div class="zones-subtabs">
         <button class="zones-subtab active" id="zones-subtab-user" onclick="switchZonesSubTab('user')">Свои</button>
-        <button class="zones-subtab" id="zones-subtab-parking" onclick="switchZonesSubTab('parking')">Зоны парковщика</button>
+        <button class="zones-subtab" id="zones-subtab-parking" onclick="switchZonesSubTab('parking')">Парковщик</button>
+        <button class="zones-subtab" id="zones-subtab-territory" onclick="switchZonesSubTab('territory')">Территории</button>
+      </div>
+      <div id="territory-toolbar" style="display:none">
+        <div class="territory-filters">
+          <button class="territory-filter-btn active" id="territory-filter-all" onclick="setTerritoryFilter('all')">Все</button>
+          <button class="territory-filter-btn" id="territory-filter-city" onclick="setTerritoryFilter('city')">Города</button>
+          <button class="territory-filter-btn" id="territory-filter-zone" onclick="setTerritoryFilter('zone')">Районы</button>
+        </div>
+        <input class="field-input" id="territory-search" type="search" placeholder="Поиск по названию…"
+          oninput="setTerritorySearch(this.value)">
       </div>
       <div id="zone-list"></div>
       <div class="sidebar-footer" id="zones-footer-user">
@@ -56,6 +66,14 @@
         <button class="btn btn-blue" onclick="exportParkingZonesPwn()">Экспорт .pwn</button>
         <button class="btn btn-yellow" id="btn-parking-zones" onclick="toggleParkingZones()">Показать на карте</button>
         <button class="btn btn-red" onclick="resetParkingZones()">↺ Сброс</button>
+      </div>
+      <div class="sidebar-footer" id="zones-footer-territory" style="display:none">
+        <button class="btn btn-green" onclick="startTerritoryZonePoly()">+ Полигон</button>
+        <button class="btn btn-green" onclick="startTerritoryZoneRect()">+ Rect</button>
+        <button class="btn btn-blue" onclick="exportTerritoryZonesPwn()">Экспорт zones.txt</button>
+        <button class="btn btn-purple" onclick="openTerritoryImport()">⬆ Импорт</button>
+        <button class="btn btn-yellow" id="btn-territory-zones" onclick="toggleTerritoryZones()">Показать на карте</button>
+        <button class="btn btn-red" onclick="resetTerritoryZones()">↺ Сброс</button>
       </div>
     </div>
 
@@ -190,14 +208,29 @@
   </div>
 </div>
 
+<!-- ===================== TERRITORY IMPORT MODAL ===================== -->
+<div class="modal-overlay" id="territory-import-overlay">
+  <div class="modal-box" id="territory-import-box">
+    <div class="modal-title">Импорт территорий (zones.txt)</div>
+    <div class="modal-subtitle">
+      Вставь содержимое <code>zones.txt</code> с массивами
+      <code>g_city</code> и/или <code>g_zone</code>:
+    </div>
+    <textarea class="code-textarea" id="territory-import-textarea" placeholder="Вставь текст zones.txt сюда..."></textarea>
+    <div id="territory-import-result"></div>
+    <div class="modal-actions">
+      <button class="btn btn-accent" onclick="doTerritoryImport()">Импортировать</button>
+      <button class="btn"            onclick="closeTerritoryImport()">Отмена</button>
+    </div>
+  </div>
+</div>
+
 <!-- ===================== SCRIPTS ===================== -->
-<!--
-  Load order matters — each file depends on symbols from previous ones:
-  state → map → traffic-lights → zones → import-export → ui → canvas (init)
--->
 <script src="js/state.js"></script>
 <script src="js/map.js"></script>
 <script src="js/traffic-lights.js"></script>
+<script src="js/territory-format.js"></script>
+<script src="js/territory-zones-data.js"></script>
 <script src="js/zones.js"></script>
 <script src="js/routes.js"></script>
 <script src="js/import-export.js"></script>

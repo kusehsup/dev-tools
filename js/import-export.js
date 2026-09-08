@@ -143,9 +143,10 @@ function exportZone(i, fmt) {
 }
 
 function exportAllZones() {
-  if (zones.length === 0) { showToast('Нет зон для экспорта'); return; }
+  const list = zones.filter(isUserZone);
+  if (list.length === 0) { showToast('Нет зон для экспорта'); return; }
 
-  const code = zones.map(z => {
+  const code = list.map(z => {
     let pts = z.points;
     if (z.type === 'rect' && pts.length === 2) {
       const [a, b] = pts;
@@ -165,9 +166,10 @@ function exportAllZones() {
 }
 
 function exportAllZonesPwn() {
-  if (zones.length === 0) { showToast('Нет зон для экспорта'); return; }
+  const list = zones.filter(isUserZone);
+  if (list.length === 0) { showToast('Нет зон для экспорта'); return; }
 
-  const blocks = zones.map(z => {
+  const blocks = list.map(z => {
     let pts = z.points;
     if (z.type === 'rect' && pts.length === 2) {
       const [a, b] = pts;
@@ -208,6 +210,58 @@ function exportParkingZonesPwn() {
   });
 
   openExportModal('Зоны парковщика (.pwn)', blocks.join(',\n'));
+}
+
+function exportTerritoryZonesPwn() {
+  const { cities, streets } = collectTerritoryExportLists();
+  if (!cities.length && !streets.length) {
+    showToast('Нет территорий для экспорта');
+    return;
+  }
+  const tooLong = [...cities, ...streets].filter(z => (z.points || []).length > TERRITORY_MAX_POINTS);
+  if (tooLong.length) {
+    showToast(`У ${tooLong.length} зон больше ${TERRITORY_MAX_POINTS} точек — лишние обрезаны при экспорте`, 2800);
+  }
+  openExportModal('Экспорт территорий (zones.txt)', formatTerritoryPwn(cities, streets));
+}
+
+function exportSingleTerritory(i) {
+  const z = zones[i];
+  if (!z?.isTerritoryZone) { showToast('Это не территория'); return; }
+  const entry = {
+    type: z.territoryType || defaultTerritoryType(z.territoryKind),
+    name: z.name,
+    points: zonePointsAsPoly(z),
+    extra: z.extra || 0,
+  };
+  openExportModal(`zones.txt: ${z.name}`, formatTerritoryEntry(entry) + ',');
+}
+
+function openTerritoryImport() {
+  document.getElementById('territory-import-overlay').classList.add('open');
+  document.getElementById('territory-import-result').textContent = '';
+}
+
+function closeTerritoryImport() {
+  document.getElementById('territory-import-overlay').classList.remove('open');
+}
+
+function doTerritoryImport() {
+  const src = document.getElementById('territory-import-textarea').value;
+  const resultEl = document.getElementById('territory-import-result');
+  const parsed = parseTerritoryPwn(src);
+  const cityN = parsed.cities.length;
+  const zoneN = parsed.streets.length;
+  if (cityN === 0 && zoneN === 0) {
+    resultEl.style.color = 'var(--red)';
+    resultEl.textContent = 'Не найдено g_city / g_zone. Проверь формат zones.txt.';
+    return;
+  }
+  applyTerritoryImport(parsed);
+  resultEl.style.color = 'var(--green)';
+  resultEl.textContent = `Импортировано: ${cityN} городов, ${zoneN} районов.`;
+  showToast(`Импортировано ${cityN + zoneN} территорий`);
+  setTimeout(closeTerritoryImport, 900);
 }
 
 function exportGreenZoneSQL(i) {

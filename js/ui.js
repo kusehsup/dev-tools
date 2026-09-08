@@ -121,9 +121,16 @@ window.addEventListener('keydown', e => {
   if (e.key === '2') setMode('pan');
   if (e.key === 'm' || e.key === 'M') toggleMap();
 
-  if ((e.key === 'Delete' || e.key === 'Backspace') && selectedIdx !== null) {
+  if ((e.key === 'Delete' || e.key === 'Backspace') && selectedIdx !== null && activeContext === 'tl') {
     confirmRemoveTL(selectedIdx);
     e.preventDefault();
+  }
+  if ((e.key === 'Delete' || e.key === 'Backspace') && selectedZoneIdx !== null && activeContext === 'zones') {
+    const z = zones[selectedZoneIdx];
+    if (z && !z.isGreenZone) {
+      removeZone(selectedZoneIdx);
+      e.preventDefault();
+    }
   }
 });
 

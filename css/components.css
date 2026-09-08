@@ -53,6 +53,9 @@
 .btn-blue   { border-color: #4488cc; color: #4488cc; }
 .btn-blue:hover   { background: rgba(68,136,204,0.15); color: #4488cc; }
 
+.btn-cyan   { border-color: var(--cyan); color: var(--cyan); }
+.btn-cyan:hover   { background: var(--cyan-dim); color: var(--cyan); border-color: var(--cyan); }
+
 /* Icon-only small remove button */
 .btn-remove {
   display: inline-flex;
@@ -212,6 +215,8 @@
   font-size: 12px;
   font-weight: 600;
   color: var(--text-primary);
+  min-width: 0;
+  flex-wrap: wrap;
 }
 
 .zone-color-dot {
@@ -256,6 +261,54 @@
 }
 .color-swatch:hover { transform: scale(1.2); }
 .color-swatch.active { border-color: rgba(255,255,255,0.8); }
+
+.territory-toolbar {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-2);
+  padding: var(--sp-2) var(--sp-3);
+  border-bottom: 1px solid var(--border-subtle);
+  flex-shrink: 0;
+}
+.territory-filters {
+  display: flex;
+  gap: var(--sp-1);
+}
+.territory-filter-btn {
+  flex: 1;
+  padding: 4px 6px;
+  border-radius: var(--r-sm);
+  border: 1px solid var(--border-soft);
+  background: transparent;
+  color: var(--text-secondary);
+  font-family: var(--font-ui);
+  font-size: 11px;
+  cursor: pointer;
+}
+.territory-filter-btn:hover { color: var(--text-primary); background: var(--bg-elevated); }
+.territory-filter-btn.active {
+  background: var(--bg-elevated);
+  border-color: var(--border-focus);
+  color: var(--text-primary);
+}
+.territory-kind-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 1px 6px;
+  border-radius: var(--r-full);
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  flex-shrink: 0;
+}
+.territory-kind-badge.city {
+  background: var(--cyan-dim);
+  color: var(--cyan);
+}
+.territory-kind-badge.zone {
+  background: var(--purple-dim);
+  color: var(--purple);
+}
 
 /* ---- Log entries ---- */
 .log-entry {
@@ -347,8 +400,9 @@
 
 #export-textarea { height: 60vh; }
 #import-textarea { height: 220px; color: #cce; }
+#territory-import-textarea { height: 260px; color: #cce; }
 
-#import-result {
+#import-result, #territory-import-result {
   font-size: 11px;
   color: var(--green);
   min-height: 16px;
