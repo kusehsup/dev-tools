@@ -316,7 +316,9 @@ selectedIdx = 0;
 renderTLList();
 updateTLButtons();
 
-zones = loadUserZones();
+zones = [];
+initZoneTypes();
+applyFeatureFlags();
 renderZoneList();
 
 initRoutesData().then(() => { renderRouteList(); draw(); });

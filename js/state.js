@@ -34,6 +34,12 @@ const STORAGE = {
   ZONES:      'tl_user_zones',
   PARKING:    'tl_parking_zones',
   TERRITORY:  'tl_territory_zones',
+  GREEN:      'tl_green_zones',
+};
+
+const FEATURES = {
+  // Set true to show bus/train route editors again.
+  ROUTES_TAB: false,
 };
 
 // --- Viewport ---
@@ -73,9 +79,10 @@ let parkingZonesLoaded = false;
 let PARKING_ZONES_DATA = [];
 let territoryZonesLoaded = false;
 let TERRITORY_ZONES_DATA = { cities: [], streets: [] };
-let zonesSubTab      = 'user'; // 'user' | 'parking' | 'territory'
+let userZonesLoaded  = false;
+let zonesSubTab      = 'user';
+let zoneSearch       = '';
 let territoryFilter  = 'all';  // 'all' | 'city' | 'zone'
-let territorySearch  = '';
 
 // --- Calibration ---
 let calPoints    = [];

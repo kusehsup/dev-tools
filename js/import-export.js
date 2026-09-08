@@ -272,18 +272,34 @@ function exportGreenZoneSQL(i) {
   const nk  = z.noKnife      ?? 1;
   const act = z.isActive     ?? 1;
 
-  let minZ = '0', maxZ = '100';
-  const gz = GREEN_ZONES_DATA.find(g => g.dbId === z.dbId);
-  if (gz) {
+  let minZ = z.minZ ?? '0', maxZ = z.maxZ ?? '100';
+  const gz = GREEN_ZONES_DATA.find(g => g.id === z.dbId || g.dbId === z.dbId);
+  if (gz && (minZ === '0' && maxZ === '100')) {
     try { const arr = JSON.parse(gz.polygon_points); if (arr?.[0]) { minZ = arr[0][0]; maxZ = arr[0][1]; } } catch {}
   }
 
   const polyJson = JSON.stringify([[minZ, maxZ], pts.flatMap(p => [p.x.toFixed(4), p.y.toFixed(4)])]);
   const code =
     `INSERT INTO green_zones (name, min_x, max_x, min_y, max_y, is_use_polygon, polygon_points, virtual_world, is_no_collision, is_no_knife, is_active)\n` +
-    `VALUES ('${z.name}', 0, 0, 0, 0, 1, '${polyJson}', ${vw}, ${nc}, ${nk}, ${act});`;
+    `VALUES ('${z.name.replace(/'/g, "\\'")}', 0, 0, 0, 0, 1, '${polyJson}', ${vw}, ${nc}, ${nk}, ${act});`;
 
   openExportModal(`SQL: ${z.name}`, code);
+}
+
+function exportAllGreenZonesSQL() {
+  const list = zones.filter(z => z.isGreenZone || z.kind === 'green');
+  if (!list.length) { showToast('Нет GreenZones'); return; }
+  const blocks = list.map(z => {
+    const vw  = z.virtualWorld ?? 0;
+    const nc  = z.noCollision  ?? 0;
+    const nk  = z.noKnife      ?? 1;
+    const act = z.isActive     ?? 1;
+    const minZ = z.minZ ?? '0', maxZ = z.maxZ ?? '100';
+    const polyJson = JSON.stringify([[minZ, maxZ], z.points.flatMap(p => [p.x.toFixed(4), p.y.toFixed(4)])]);
+    return `INSERT INTO green_zones (name, min_x, max_x, min_y, max_y, is_use_polygon, polygon_points, virtual_world, is_no_collision, is_no_knife, is_active)\n` +
+      `VALUES ('${z.name.replace(/'/g, "\\'")}', 0, 0, 0, 0, 1, '${polyJson}', ${vw}, ${nc}, ${nk}, ${act});`;
+  });
+  openExportModal('GreenZones SQL', blocks.join('\n\n'));
 }
 
 // --- Export modal helper ---

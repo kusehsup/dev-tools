@@ -21,7 +21,7 @@
     <div id="sidebar-tabs">
       <button class="tab-btn active" onclick="switchTab('tl')">Светофоры</button>
       <button class="tab-btn"        onclick="switchTab('zones')">Зоны</button>
-      <button class="tab-btn"        onclick="switchTab('routes')">Маршруты</button>
+      <button class="tab-btn"        id="tab-btn-routes" onclick="switchTab('routes')" style="display:none">Маршруты</button>
     </div>
 
     <!-- Traffic Lights tab -->
@@ -38,48 +38,19 @@
 
     <!-- Zones tab -->
     <div class="tab-panel" id="tab-zones">
-      <div class="zones-subtabs">
-        <button class="zones-subtab active" id="zones-subtab-user" onclick="switchZonesSubTab('user')">Свои</button>
-        <button class="zones-subtab" id="zones-subtab-parking" onclick="switchZonesSubTab('parking')">Парковщик</button>
-        <button class="zones-subtab" id="zones-subtab-territory" onclick="switchZonesSubTab('territory')">Территории</button>
-      </div>
-      <div id="territory-toolbar" style="display:none">
-        <div class="territory-filters">
-          <button class="territory-filter-btn active" id="territory-filter-all" onclick="setTerritoryFilter('all')">Все</button>
-          <button class="territory-filter-btn" id="territory-filter-city" onclick="setTerritoryFilter('city')">Города</button>
-          <button class="territory-filter-btn" id="territory-filter-zone" onclick="setTerritoryFilter('zone')">Районы</button>
-        </div>
-        <input class="field-input" id="territory-search" type="search" placeholder="Поиск по названию…"
-          oninput="setTerritorySearch(this.value)" onkeyup="setTerritorySearch(this.value)">
-        <div class="zone-card-meta" id="territory-count"></div>
+      <div class="zones-subtabs" id="zones-subtabs"></div>
+      <div class="territory-toolbar" id="zones-toolbar">
+        <input class="field-input" id="zone-search" type="search" placeholder="Поиск по названию…"
+          oninput="setZoneSearch(this.value)">
+        <div id="zone-type-extra"></div>
+        <div class="zone-card-meta" id="zone-count"></div>
       </div>
       <div id="zone-list"></div>
-      <div class="sidebar-footer" id="zones-footer-user">
-        <button class="btn btn-green" onclick="startZonePoly()">+ Полигон</button>
-        <button class="btn btn-green" onclick="startZoneRect()">+ Прямоугольник</button>
-        <button class="btn btn-blue"  onclick="exportAllZones()">Экспорт всех</button>
-        <button class="btn btn-blue"  onclick="exportAllZonesPwn()">Экспорт .pwn</button>
-        <button class="btn btn-green" id="btn-green-zones" onclick="toggleGreenZones()">🌿 GreenZones</button>
-      </div>
-      <div class="sidebar-footer" id="zones-footer-parking" style="display:none">
-        <button class="btn btn-green" onclick="startParkingZonePoly()">+ Полигон</button>
-        <button class="btn btn-green" onclick="startParkingZoneRect()">+ Прямоугольник</button>
-        <button class="btn btn-blue" onclick="exportParkingZonesPwn()">Экспорт .pwn</button>
-        <button class="btn btn-yellow" id="btn-parking-zones" onclick="toggleParkingZones()">Показать на карте</button>
-        <button class="btn btn-red" onclick="resetParkingZones()">↺ Сброс</button>
-      </div>
-      <div class="sidebar-footer" id="zones-footer-territory" style="display:none">
-        <button class="btn btn-green" onclick="startTerritoryZonePoly()">+ Полигон</button>
-        <button class="btn btn-green" onclick="startTerritoryZoneRect()">+ Rect</button>
-        <button class="btn btn-blue" onclick="exportTerritoryZonesPwn()">Экспорт zones.txt</button>
-        <button class="btn btn-purple" onclick="openTerritoryImport()">⬆ Импорт</button>
-        <button class="btn btn-yellow" id="btn-territory-zones" onclick="toggleTerritoryZones()">Показать на карте</button>
-        <button class="btn btn-red" onclick="resetTerritoryZones()">↺ Сброс</button>
-      </div>
+      <div class="sidebar-footer" id="zones-footer"></div>
     </div>
 
     <!-- Routes tab -->
-    <div class="tab-panel" id="tab-routes">
+    <div class="tab-panel" id="tab-routes" style="display:none">
 
       <!-- Subsection header -->
       <div class="routes-section-header">
@@ -235,6 +206,7 @@
 <script src="js/zones.js"></script>
 <script src="js/routes.js"></script>
 <script src="js/import-export.js"></script>
+<script src="js/zone-types.js"></script>
 <script src="js/ui.js"></script>
 <script src="js/canvas.js"></script>
 <script src="js/mobile.js"></script>

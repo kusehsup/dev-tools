@@ -9,150 +9,27 @@ function territoryColorFor(kind) {
 }
 
 function isUserZone(z) {
-  return !z.isGreenZone && !z.isParkingZone && !z.isTerritoryZone;
+  return zoneKindOf(z) === 'user';
 }
 
 function zoneBelongsToSubTab(z, tab) {
-  if (tab === 'parking') return !!z.isParkingZone;
-  if (tab === 'territory') return !!z.isTerritoryZone;
-  return !z.isParkingZone && !z.isTerritoryZone;
+  return zoneMatchesType(z, tab);
 }
 
 function zoneSubTabOf(z) {
-  if (z.isParkingZone) return 'parking';
-  if (z.isTerritoryZone) return 'territory';
-  return 'user';
-}
-
-function persistEditedZone(z) {
-  if (!z || z.isGreenZone) return;
-  if (z.isParkingZone) saveParkingZones();
-  else if (z.isTerritoryZone) saveTerritoryZones();
-  else saveUserZones();
-}
-
-function currentZoneDrawTarget() {
-  if (zonesSubTab === 'parking') return 'parking';
-  if (zonesSubTab === 'territory') return 'territory';
-  return 'user';
-}
-
-// --- Drawing mode entry points (called from topbar buttons) ---
-function startZonePoly() {
-  startZoneDraw('poly', currentZoneDrawTarget());
-}
-
-function startZoneRect() {
-  startZoneDraw('rect', currentZoneDrawTarget());
-}
-
-function startParkingZonePoly() {
-  startZoneDraw('poly', 'parking');
-}
-
-function startParkingZoneRect() {
-  startZoneDraw('rect', 'parking');
-}
-
-function startTerritoryZonePoly() {
-  startZoneDraw('poly', 'territory');
-}
-
-function startTerritoryZoneRect() {
-  startZoneDraw('rect', 'territory');
-}
-
-function startZoneDraw(type, target) {
-  setMode(type === 'rect' ? 'zone-rect' : 'zone-poly');
-  drawingZone = { type, points: [], target };
-  switchTab('zones');
-  if (zonesSubTab !== target) switchZonesSubTab(target);
-  if (target === 'parking' && !parkingZonesLoaded) loadParkingZones();
-  if (target === 'territory' && !territoryZonesLoaded) loadTerritoryZones();
-  setInfo(type === 'rect'
-    ? 'Прямоугольник: зажми ЛКМ и тяни'
-    : 'Полигон: ЛКМ — точка, ПКМ или двойной клик — замкнуть');
-}
-
-function finishZone() {
-  if (!drawingZone) return;
-  const z = drawingZone;
-  drawingZone = null;
-  if (z.type === 'poly' && z.points.length < 3) { setMode('pan'); draw(); return; }
-  if (z.type === 'rect' && z.points.length < 2) { setMode('pan'); draw(); return; }
-
-  const target = z.target || currentZoneDrawTarget();
-  const isParking = target === 'parking';
-  const isTerritory = target === 'territory';
-  const parkingCount = zones.filter(x => x.isParkingZone).length;
-  const userCount = zones.filter(isUserZone).length;
-
-  let points = z.points;
-  let type = z.type;
-  if (isTerritory && type === 'rect' && points.length >= 2) {
-    const poly = zonePointsAsPoly({ type: 'rect', points });
-    points = poly;
-    type = 'poly';
-  }
-
-  const zone = {
-    type,
-    name: isParking ? `Парковка ${parkingCount + 1}` : `Зона ${userCount + 1}`,
-    color: isParking ? '#ff9800' : zoneColorFor(userCount),
-    points,
-    closed: true,
-  };
-  if (isParking) {
-    zone.isParkingZone = true;
-    zone.parkingId = `custom-${Date.now()}`;
-  }
-  if (isTerritory) {
-    const kind = territoryFilter === 'zone' ? TERRITORY_KIND_ZONE : TERRITORY_KIND_CITY;
-    const count = zones.filter(x => x.isTerritoryZone && x.territoryKind === kind).length;
-    zone.isTerritoryZone = true;
-    zone.territoryKind = kind;
-    zone.territoryType = defaultTerritoryType(kind);
-    zone.territoryId = `custom-${Date.now()}`;
-    zone.extra = 0;
-    zone.color = territoryColorFor(kind);
-    zone.name = kind === TERRITORY_KIND_ZONE ? `Район ${count + 1}` : `Город ${count + 1}`;
-  }
-
-  zones.push(zone);
-  selectedZoneIdx = zones.length - 1;
-  setMode('pan');
-  persistEditedZone(zone);
-  renderZoneList();
-  draw();
-  showToast(isParking ? 'Зона парковщика создана' : isTerritory
-    ? (zone.territoryKind === TERRITORY_KIND_ZONE ? 'Район создан' : 'Город создан')
-    : 'Зона создана');
-}
-
-function removeZone(i) {
-  const z = zones[i];
-  if (!z || z.isGreenZone) return;
-
-  const doRemove = () => {
-    const idx = zones.indexOf(z);
-    if (idx < 0) return;
-    zones.splice(idx, 1);
-    if (selectedZoneIdx >= zones.length) selectedZoneIdx = zones.length - 1;
-    persistEditedZone(z);
-    renderZoneList();
-    draw();
-  };
-
-  if (z.isTerritoryZone) {
-    showConfirm(`Удалить территорию «${z.name}»?`, doRemove);
-    return;
-  }
-  doRemove();
+  return zoneKindOf(z);
 }
 
 // --- Persistence ---
 function saveUserZones() {
-  const toSave = zones.filter(isUserZone);
+  const toSave = zones.filter(isUserZone).map(z => ({
+    kind: 'user',
+    type: z.type || 'poly',
+    name: z.name,
+    color: z.color,
+    points: z.points,
+    closed: true,
+  }));
   try { localStorage.setItem(STORAGE.ZONES, JSON.stringify(toSave)); } catch {}
 }
 
@@ -164,10 +41,33 @@ function loadUserZones() {
   return [];
 }
 
+function loadUserZonesOntoMap() {
+  if (userZonesLoaded) return;
+  loadUserZones().forEach(z => {
+    zones.push({
+      kind: 'user',
+      type: z.type || 'poly',
+      name: z.name,
+      color: z.color || zoneColorFor(zones.length),
+      points: Array.isArray(z.points) ? z.points : [],
+      closed: true,
+    });
+  });
+  userZonesLoaded = true;
+}
+
+function unloadUserZones() {
+  if (!userZonesLoaded) return;
+  saveUserZones();
+  zones = zones.filter(z => !isUserZone(z));
+  userZonesLoaded = false;
+}
+
 function saveParkingZones() {
   const toSave = zones
     .filter(z => z.isParkingZone)
     .map(z => ({
+      kind: 'parking',
       parkingId: z.parkingId ?? null,
       name: z.name,
       color: z.color || '#ff9800',
@@ -196,254 +96,16 @@ function parkingZonesFromBuiltin() {
     points: flatCoordsToPoints(pz.coords),
     closed: true,
     isParkingZone: true,
+    kind: 'parking',
     parkingId: `builtin-${idx}`,
   })).filter(z => z.points.length >= 3);
 }
 
-// --- Sidebar list ---
-function switchZonesSubTab(tab) {
-  zonesSubTab = tab;
-  document.getElementById('zones-subtab-user')?.classList.toggle('active', tab === 'user');
-  document.getElementById('zones-subtab-parking')?.classList.toggle('active', tab === 'parking');
-  document.getElementById('zones-subtab-territory')?.classList.toggle('active', tab === 'territory');
-  const footerUser = document.getElementById('zones-footer-user');
-  const footerPark = document.getElementById('zones-footer-parking');
-  const footerTerr = document.getElementById('zones-footer-territory');
-  const terrToolbar = document.getElementById('territory-toolbar');
-  if (footerUser) footerUser.style.display = tab === 'user' ? '' : 'none';
-  if (footerPark) footerPark.style.display = tab === 'parking' ? '' : 'none';
-  if (footerTerr) footerTerr.style.display = tab === 'territory' ? '' : 'none';
-  if (terrToolbar) terrToolbar.style.display = tab === 'territory' ? '' : 'none';
-
-  if (tab === 'parking' && !parkingZonesLoaded) {
-    loadParkingZones();
-  }
-  if (tab === 'territory' && !territoryZonesLoaded) {
-    loadTerritoryZones();
-  }
-
-  const visible = zones
-    .map((z, i) => ({ z, i }))
-    .filter(({ z }) => zoneBelongsToSubTab(z, tab) && territoryCardVisible(z));
-  if (visible.length && (selectedZoneIdx === null || !visible.some(v => v.i === selectedZoneIdx))) {
-    selectedZoneIdx = visible[0].i;
-  }
-
-  renderZoneList();
-  draw();
-}
-
 function setTerritoryFilter(filter) {
   territoryFilter = filter;
-  ['all', 'city', 'zone'].forEach(f => {
-    document.getElementById(`territory-filter-${f}`)?.classList.toggle('active', f === filter);
-  });
+  renderZoneTypeChrome?.();
   renderZoneList();
   draw();
-}
-
-function setTerritorySearch(q) {
-  territorySearch = q;
-  renderZoneList();
-}
-
-function territoryCardVisible(z) {
-  if (!z.isTerritoryZone) return true;
-  if (territoryFilter !== 'all' && z.territoryKind !== territoryFilter) return false;
-  const q = (territorySearch || '').trim().toLowerCase();
-  if (q && !String(z.name || '').toLowerCase().includes(q)) return false;
-  return true;
-}
-
-function renderZoneList() {
-  const el = document.getElementById('zone-list');
-  el.innerHTML = '';
-
-  const tab = zonesSubTab;
-  const showParking = tab === 'parking';
-  const showTerritory = tab === 'territory';
-
-  zones.forEach((z, i) => {
-    if (!zoneBelongsToSubTab(z, tab)) return;
-    if (showTerritory && !territoryCardVisible(z)) return;
-
-    const card    = document.createElement('div');
-    card.className = 'zone-card' + (i === selectedZoneIdx ? ' selected' : '');
-    card.dataset.zoneIdx = String(i);
-
-    const pts  = z.points;
-    const hasPts = pts.length > 0;
-    const xs   = hasPts ? pts.map(p => p.x) : [0];
-    const ys   = hasPts ? pts.map(p => p.y) : [0];
-    const xmin = Math.min(...xs).toFixed(2), xmax = Math.max(...xs).toFixed(2);
-    const ymin = Math.min(...ys).toFixed(2), ymax = Math.max(...ys).toFixed(2);
-    const ptCount = z.type === 'rect' ? 4 : pts.length;
-
-    let gzExtra = '';
-    if (z.isGreenZone) {
-      const gz    = GREEN_ZONES_DATA.find(g => g.dbId === z.dbId);
-      let zRange  = '';
-      if (gz) {
-        try { const arr = JSON.parse(gz.polygon_points); if (arr?.[0]) zRange = `Z: ${arr[0][0]}..${arr[0][1]} | `; } catch {}
-      }
-      gzExtra = `
-        <div class="zone-card-meta" style="color:#88cc88">${zRange}ID: ${z.dbId}</div>
-        <div class="gz-fields">
-          <div class="field">
-            <span class="field-label">Вирт. мир</span>
-            <input class="field-input" type="number" min="0" value="${z.virtualWorld ?? 0}"
-              onchange="zones[${i}].virtualWorld=parseInt(this.value)||0" onclick="event.stopPropagation()">
-          </div>
-          <div class="gz-checkboxes">
-            <label class="gz-check-label">
-              <input type="checkbox" ${z.noCollision ? 'checked' : ''} onchange="zones[${i}].noCollision=this.checked?1:0" onclick="event.stopPropagation()">
-              Нет коллизии
-            </label>
-            <label class="gz-check-label">
-              <input type="checkbox" ${z.noKnife ? 'checked' : ''} onchange="zones[${i}].noKnife=this.checked?1:0" onclick="event.stopPropagation()">
-              Нет ножа
-            </label>
-            <label class="gz-check-label">
-              <input type="checkbox" ${z.isActive ? 'checked' : ''} onchange="zones[${i}].isActive=this.checked?1:0" onclick="event.stopPropagation()">
-              Активна
-            </label>
-          </div>
-        </div>`;
-    }
-
-    const canEdit = !z.isGreenZone;
-    const persistFn = z.isParkingZone ? 'saveParkingZones()' : z.isTerritoryZone ? 'saveTerritoryZones()' : 'saveUserZones()';
-    const swatches = canEdit && !z.isTerritoryZone ? ZONE_COLORS.map(c =>
-      `<div class="color-swatch ${z.color === c ? 'active' : ''}" style="background:${c}"
-         onclick="zones[${i}].color='${c}';${persistFn};renderZoneList();draw()"></div>`
-    ).join('') : '';
-
-    const removeBtn = canEdit
-      ? `<button class="btn-remove" onclick="event.stopPropagation();removeZone(${i})">✕</button>`
-      : '';
-
-    const nameInput = canEdit
-      ? `<input class="field-input" type="text" value="${escapeHtmlAttr(z.name)}"
-        onchange="zones[${i}].name=this.value; ${persistFn}; renderZoneList();"
-        onclick="event.stopPropagation()">`
-      : '';
-
-    let extraFields = '';
-    if (z.isTerritoryZone) {
-      const kind = z.territoryKind === TERRITORY_KIND_ZONE ? 'zone' : 'city';
-      const types = kind === 'zone' ? TERRITORY_ZONE_TYPES : TERRITORY_CITY_TYPES;
-      const typeOpts = types.map(t =>
-        `<option value="${t}" ${z.territoryType === t ? 'selected' : ''}>${t}</option>`
-      ).join('');
-      extraFields = `
-        <div class="tl-card-row">
-          <div class="field">
-            <span class="field-label">Тип зоны</span>
-            <select class="field-input" onchange="setTerritoryKind(${i}, this.value)" onclick="event.stopPropagation()">
-              <option value="${TERRITORY_KIND_CITY}" ${kind === 'city' ? 'selected' : ''}>Город</option>
-              <option value="${TERRITORY_KIND_ZONE}" ${kind === 'zone' ? 'selected' : ''}>Улица / район</option>
-            </select>
-          </div>
-          <div class="field">
-            <span class="field-label">Константа</span>
-            <select class="field-input" onchange="setTerritoryType(${i}, this.value)" onclick="event.stopPropagation()">
-              ${typeOpts}
-            </select>
-          </div>
-        </div>`;
-    }
-
-    const focusBtn = z.isTerritoryZone
-      ? `<button class="zone-export-btn" onclick="event.stopPropagation();focusZone(${i})">На карте</button>`
-      : '';
-
-    const exportBtns = z.isParkingZone
-      ? `<div style="display:flex;gap:6px;flex-wrap:wrap">
-        <button class="zone-export-btn" onclick="exportZone(${i},'poly')">Poly</button>
-        <button class="zone-export-btn" onclick="exportZone(${i},'rect')">AABB</button>
-      </div>`
-      : z.isTerritoryZone
-      ? `<div style="display:flex;gap:6px;flex-wrap:wrap">
-        <button class="zone-export-btn" onclick="exportSingleTerritory(${i})">zones.txt</button>
-      </div>`
-      : `<div style="display:flex;gap:6px;flex-wrap:wrap">
-        <button class="zone-export-btn" onclick="exportZone(${i},'rect')">AABB</button>
-        <button class="zone-export-btn" onclick="exportZone(${i},'poly')">Poly</button>
-        <button class="zone-export-btn btn-green" onclick="exportGreenZoneSQL(${i})">SQL INSERT</button>
-      </div>`;
-
-    const kindBadge = z.isTerritoryZone
-      ? `<span class="territory-kind-badge ${z.territoryKind === TERRITORY_KIND_ZONE ? 'zone' : 'city'}">${
-          z.territoryKind === TERRITORY_KIND_ZONE ? 'район' : 'город'
-        }</span>`
-      : '';
-
-    const bounds = hasPts
-      ? `<div class="zone-card-meta">X: ${xmin} .. ${xmax}</div>
-         <div class="zone-card-meta">Y: ${ymin} .. ${ymax}</div>`
-      : `<div class="zone-card-meta">Нет точек — нарисуй полигон</div>`;
-
-    card.innerHTML = `
-      <div class="zone-card-header">
-        <div class="zone-card-title">
-          <div class="zone-color-dot" style="background:${z.color}"></div>
-          <span>${escapeHtmlAttr(z.name)}</span>
-          ${kindBadge}
-        </div>
-        <div style="display:flex;align-items:center;gap:4px">${focusBtn}${removeBtn}</div>
-      </div>
-      <div class="zone-card-meta">${z.type === 'rect' ? 'Прямоугольник' : `Полигон · ${ptCount} вершин`}</div>
-      ${gzExtra}
-      ${bounds}
-      ${nameInput}
-      ${extraFields}
-      ${swatches ? `<div class="color-swatch-row">${swatches}</div>` : ''}
-      ${exportBtns}`;
-
-    card.addEventListener('mousedown', e => {
-      const tag = e.target.tagName;
-      if (!['INPUT','BUTTON','SELECT'].includes(tag)) {
-        selectedZoneIdx = i;
-        renderZoneList();
-        scrollToZone(i);
-        draw();
-      }
-    });
-    card.addEventListener('dblclick', e => {
-      const tag = e.target.tagName;
-      if (!['INPUT','BUTTON','SELECT'].includes(tag)) {
-        focusZone(i);
-      }
-    });
-
-    el.appendChild(card);
-  });
-
-  if (!el.children.length) {
-    const empty = document.createElement('div');
-    empty.className = 'zone-card-meta';
-    empty.style.padding = '8px';
-    empty.textContent = showParking
-      ? (parkingZonesLoaded ? 'Нет зон парковщика — нарисуй полигон' : 'Нажми «Показать на карте»')
-      : showTerritory
-      ? ((territorySearch || '').trim()
-          ? `Ничего не найдено по «${territorySearch.trim()}»`
-          : (territoryZonesLoaded ? 'Нет территорий — нарисуй полигон или сбрось к исходным' : 'Нажми «Показать на карте»'))
-      : 'Нет своих зон — нарисуй полигон или прямоугольник';
-    el.appendChild(empty);
-  }
-
-  const countEl = document.getElementById('territory-count');
-  if (countEl) {
-    const total = zones.filter(z => z.isTerritoryZone).length;
-    const shown = showTerritory
-      ? zones.filter(z => z.isTerritoryZone && territoryCardVisible(z)).length
-      : 0;
-    const q = (territorySearch || '').trim();
-    countEl.textContent = showTerritory
-      ? (q ? `Найдено ${shown} из ${total}` : `${shown} территорий`)
-      : '';
-  }
 }
 
 function scrollToZone(i) {
@@ -581,32 +243,107 @@ function drawZones() {
 }
 
 // --- Green zones ---
-function toggleGreenZones() {
-  const btn = document.getElementById('btn-green-zones');
-  if (greenZonesLoaded) {
-    zones = zones.filter(z => !z.isGreenZone);
+function greenZonesFromBuiltin() {
+  return GREEN_ZONES_DATA.map(gz => {
+    const pts = parseGreenZonePoints(gz.polygon_points);
+    let minZ = '0', maxZ = '100';
+    try {
+      const arr = JSON.parse(gz.polygon_points);
+      if (arr?.[0]) { minZ = arr[0][0]; maxZ = arr[0][1]; }
+    } catch {}
+    return {
+      kind: 'green',
+      type: 'poly',
+      name: gz.name,
+      color: '#3db76a',
+      points: pts,
+      closed: true,
+      isGreenZone: true,
+      dbId: gz.id,
+      virtualWorld: gz.vw ?? 0,
+      noCollision: gz.nc ?? 0,
+      noKnife: gz.nk ?? 1,
+      isActive: gz.act ?? 1,
+      minZ,
+      maxZ,
+    };
+  }).filter(z => z.points.length >= 2);
+}
+
+function saveGreenZones() {
+  const toSave = zones
+    .filter(z => z.isGreenZone || z.kind === 'green')
+    .map(z => ({
+      kind: 'green',
+      name: z.name,
+      color: z.color || '#3db76a',
+      type: z.type || 'poly',
+      points: z.points,
+      virtualWorld: z.virtualWorld ?? 0,
+      noCollision: z.noCollision ?? 0,
+      noKnife: z.noKnife ?? 1,
+      isActive: z.isActive ?? 1,
+      dbId: z.dbId ?? null,
+      minZ: z.minZ ?? '0',
+      maxZ: z.maxZ ?? '100',
+    }));
+  try { localStorage.setItem(STORAGE.GREEN, JSON.stringify(toSave)); } catch {}
+}
+
+function loadGreenZones() {
+  if (greenZonesLoaded) return;
+  let saved = null;
+  try {
+    const raw = localStorage.getItem(STORAGE.GREEN);
+    if (raw) {
+      const parsed = JSON.parse(raw);
+      if (Array.isArray(parsed)) saved = parsed;
+    }
+  } catch {}
+  const list = saved
+    ? saved.map((z, idx) => ({
+        kind: 'green',
+        type: z.type || 'poly',
+        name: z.name || `GreenZone ${idx + 1}`,
+        color: z.color || '#3db76a',
+        points: Array.isArray(z.points) ? z.points : [],
+        closed: true,
+        isGreenZone: true,
+        virtualWorld: z.virtualWorld ?? 0,
+        noCollision: z.noCollision ?? 0,
+        noKnife: z.noKnife ?? 1,
+        isActive: z.isActive ?? 1,
+        dbId: z.dbId ?? null,
+        minZ: z.minZ ?? '0',
+        maxZ: z.maxZ ?? '100',
+      }))
+    : greenZonesFromBuiltin();
+  list.forEach(z => zones.push(z));
+  greenZonesLoaded = true;
+  if (!saved) saveGreenZones();
+}
+
+function unloadGreenZones() {
+  if (!greenZonesLoaded) return;
+  saveGreenZones();
+  zones = zones.filter(z => !(z.isGreenZone || z.kind === 'green'));
+  greenZonesLoaded = false;
+}
+
+function resetGreenZones() {
+  showConfirm('Сбросить GreenZones к исходным?', () => {
+    try { localStorage.removeItem(STORAGE.GREEN); } catch {}
+    zones = zones.filter(z => !(z.isGreenZone || z.kind === 'green'));
     greenZonesLoaded = false;
-    btn.classList.remove('btn-green');
-    showToast('GreenZones скрыты');
-  } else {
-    GREEN_ZONES_DATA.forEach(gz => {
-      const pts = parseGreenZonePoints(gz.polygon_points);
-      if (pts.length < 2) return;
-      zones.push({
-        type: 'poly', name: gz.name, color: '#3db76a',
-        points: pts, closed: true, isGreenZone: true, dbId: gz.id,
-        virtualWorld: gz.vw  ?? 0,
-        noCollision:  gz.nc  ?? 0,
-        noKnife:      gz.nk  ?? 1,
-        isActive:     gz.act ?? 1,
-      });
-    });
-    greenZonesLoaded = true;
-    btn.classList.add('btn-green');
-    showToast(`Загружено ${GREEN_ZONES_DATA.length} GreenZones`);
-  }
-  renderZoneList();
-  draw();
+    loadGreenZones();
+    renderZoneList();
+    draw();
+    showToast('GreenZones сброшены');
+  });
+}
+
+function toggleGreenZones() {
+  switchZonesSubTab('green');
 }
 
 function parseGreenZonePoints(raw) {
@@ -647,6 +384,7 @@ function loadParkingZones() {
         points: Array.isArray(z.points) ? z.points : [],
         closed: true,
         isParkingZone: true,
+        kind: 'parking',
         parkingId: z.parkingId ?? `saved-${idx}`,
       })).filter(z => z.points.length >= 2)
     : parkingZonesFromBuiltin();
@@ -709,6 +447,7 @@ function saveTerritoryZones() {
   const toSave = zones
     .filter(z => z.isTerritoryZone)
     .map(z => ({
+      kind: 'territory',
       territoryId: z.territoryId ?? null,
       name: z.name,
       color: z.color,
@@ -740,6 +479,7 @@ function territoryZonesFromBuiltin() {
     points: flatCoordsToPoints(tz.coords || []),
     closed: true,
     isTerritoryZone: true,
+    kind: 'territory',
     territoryKind: kind,
     territoryType: tz.type || defaultTerritoryType(kind),
     territoryId: `builtin-${kind}-${idx}`,
@@ -767,6 +507,7 @@ function hydrateTerritoryZone(z, idx) {
     points: Array.isArray(z.points) ? z.points : flatCoordsToPoints(z.coords || []),
     closed: true,
     isTerritoryZone: true,
+    kind: 'territory',
     territoryKind: kind === TERRITORY_KIND_ZONE ? TERRITORY_KIND_ZONE : TERRITORY_KIND_CITY,
     territoryType: typeName,
     territoryId: z.territoryId ?? `saved-${idx}`,
@@ -940,10 +681,11 @@ function applyTerritoryImport(parsed) {
 
 function hitTestEditableZoneVertex(ex, ey, radius = 8) {
   if (activeContext !== 'zones') return null;
+  const type = currentZoneType?.();
   for (let i = zones.length - 1; i >= 0; i--) {
     const z = zones[i];
-    if (z.isGreenZone) continue;
-    if (!zoneBelongsToSubTab(z, zonesSubTab)) continue;
+    if (type?.canEdit === false) continue;
+    if (type && typeof zoneMatchesType === 'function' && !zoneMatchesType(z, type.id)) continue;
     for (let j = 0; j < z.points.length; j++) {
       const s = worldToScreen(z.points[j].x, z.points[j].y);
       if (Math.hypot(ex - s.x, ey - s.y) <= radius) {
