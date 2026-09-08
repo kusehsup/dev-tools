@@ -1,105 +1,128 @@
 <!DOCTYPE html>
-<html lang="ru">
+<html lang="ru" class="h-full">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
   <meta name="mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-capable" content="yes">
-  <meta name="theme-color" content="#151518">
+  <meta name="theme-color" content="#09090b">
   <title>Hassle Dev Tools</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['"IBM Plex Sans"', 'ui-sans-serif', 'system-ui', 'sans-serif'],
+            mono: ['"IBM Plex Mono"', 'ui-monospace', 'monospace'],
+          },
+          colors: {
+            ink: {
+              950: '#09090b',
+              900: '#0c0c0f',
+              850: '#121216',
+              800: '#18181d',
+              700: '#22222a',
+            }
+          },
+          boxShadow: {
+            panel: '0 0 0 1px rgba(255,255,255,0.04), 0 18px 50px rgba(0,0,0,0.35)',
+          }
+        }
+      }
+    };
+  </script>
   <link rel="stylesheet" href="css/base.css">
   <link rel="stylesheet" href="css/layout.css">
   <link rel="stylesheet" href="css/components.css">
+  <link rel="stylesheet" href="css/ui-modern.css">
   <link rel="stylesheet" href="css/mobile.css">
 </head>
-<body>
+<body class="h-full overflow-hidden bg-ink-950 text-zinc-100 font-sans antialiased">
 
 <div id="app">
 
   <!-- ===================== SIDEBAR ===================== -->
-  <div id="sidebar">
-    <div id="sidebar-tabs">
-      <button class="tab-btn active" onclick="switchTab('tl')">Светофоры</button>
-      <button class="tab-btn"        onclick="switchTab('zones')">Зоны</button>
-      <button class="tab-btn"        onclick="switchTab('routes')">Маршруты</button>
+  <div id="sidebar" class="modern-sidebar">
+    <div class="px-4 pt-4 pb-3 border-b border-white/5">
+      <div class="text-[11px] uppercase tracking-[0.14em] text-zinc-500">Hassle</div>
+      <div class="text-base font-semibold tracking-tight text-zinc-100">Dev Tools</div>
+    </div>
+
+    <div id="sidebar-tabs" class="modern-nav">
+      <button class="tab-btn modern-nav-btn active" onclick="switchTab('tl')">Светофоры</button>
+      <button class="tab-btn modern-nav-btn" onclick="switchTab('zones')">Зоны</button>
+      <button class="tab-btn modern-nav-btn" id="tab-btn-routes" onclick="switchTab('routes')" style="display:none">Маршруты</button>
     </div>
 
     <!-- Traffic Lights tab -->
     <div class="tab-panel active" id="tab-tl">
       <div id="tl-list"></div>
-      <div class="sidebar-footer">
-        <button class="btn"            onclick="addTrafficLight()">+ Светофор</button>
-        <button class="btn btn-purple" onclick="openImport()">⬆ Импорт</button>
-        <button class="btn btn-yellow" onclick="exportTLPwn()">⬇ Экспорт</button>
-        <button class="btn btn-yellow" id="btn-tl-saved" onclick="onTLSaveBtnClick()">💾 Сохранить</button>
-        <button class="btn btn-red"    id="btn-tl-clear" onclick="onTLClearBtnClick()" style="display:none">🗑 Очистить</button>
+      <div class="sidebar-footer modern-footer">
+        <button class="ui-btn ui-btn-primary" onclick="addTrafficLight()">+ Светофор</button>
+        <button class="ui-btn" onclick="openImport()">Импорт</button>
+        <button class="ui-btn ui-btn-accent" onclick="exportTLPwn()">Экспорт</button>
+        <button class="ui-btn" id="btn-tl-saved" onclick="onTLSaveBtnClick()">Сохранить</button>
+        <button class="ui-btn ui-btn-danger" id="btn-tl-clear" onclick="onTLClearBtnClick()" style="display:none">Очистить</button>
       </div>
     </div>
 
     <!-- Zones tab -->
     <div class="tab-panel" id="tab-zones">
-      <div class="zones-subtabs">
-        <button class="zones-subtab active" id="zones-subtab-user" onclick="switchZonesSubTab('user')">Свои</button>
-        <button class="zones-subtab" id="zones-subtab-parking" onclick="switchZonesSubTab('parking')">Зоны парковщика</button>
+      <div class="zones-head">
+        <div class="zones-head-row">
+          <div class="flex-1 min-w-0">
+            <label class="ui-label" for="zone-type-select">Тип зон</label>
+            <select id="zone-type-select" class="ui-input" onchange="switchZonesSubTab(this.value)"></select>
+          </div>
+          <button class="ui-btn ui-btn-ghost mt-5" title="Типы зон" onclick="openTypeManager()">Типы</button>
+        </div>
+        <p id="zone-type-hint" class="text-[11px] text-zinc-500 leading-snug"></p>
+        <div class="zones-head-row">
+          <input class="ui-input flex-1" id="zone-search" type="search" placeholder="Поиск…"
+            oninput="setZoneSearch(this.value)">
+          <span id="zone-count" class="text-xs text-zinc-500 tabular-nums min-w-[2rem] text-right pt-2"></span>
+        </div>
+        <div id="zone-type-extra"></div>
       </div>
       <div id="zone-list"></div>
-      <div class="sidebar-footer" id="zones-footer-user">
-        <button class="btn btn-green" onclick="startZonePoly()">+ Полигон</button>
-        <button class="btn btn-green" onclick="startZoneRect()">+ Прямоугольник</button>
-        <button class="btn btn-blue"  onclick="exportAllZones()">Экспорт всех</button>
-        <button class="btn btn-blue"  onclick="exportAllZonesPwn()">Экспорт .pwn</button>
-        <button class="btn btn-green" id="btn-green-zones" onclick="toggleGreenZones()">🌿 GreenZones</button>
-      </div>
-      <div class="sidebar-footer" id="zones-footer-parking" style="display:none">
-        <button class="btn btn-green" onclick="startParkingZonePoly()">+ Полигон</button>
-        <button class="btn btn-green" onclick="startParkingZoneRect()">+ Прямоугольник</button>
-        <button class="btn btn-blue" onclick="exportParkingZonesPwn()">Экспорт .pwn</button>
-        <button class="btn btn-yellow" id="btn-parking-zones" onclick="toggleParkingZones()">Показать на карте</button>
-        <button class="btn btn-red" onclick="resetParkingZones()">↺ Сброс</button>
-      </div>
+      <div class="sidebar-footer modern-footer" id="zones-footer"></div>
     </div>
 
     <!-- Routes tab -->
-    <div class="tab-panel" id="tab-routes">
-
-      <!-- Subsection header -->
+    <div class="tab-panel" id="tab-routes" style="display:none">
       <div class="routes-section-header">
-        <span class="routes-section-title">🚌 Маршруты автобусника</span>
+        <span class="routes-section-title">Маршруты автобусника</span>
         <div class="routes-section-toggles">
           <button class="toggle on" id="btn-show-routes" onclick="toggleShowRoutes()">Пути</button>
           <button class="toggle on" id="btn-show-stops"  onclick="toggleShowStops()">Остановки</button>
         </div>
       </div>
-
-      <!-- Route list -->
       <div id="route-list" class="route-list"></div>
-
-      <!-- Checkpoint list -->
       <div id="checkpoint-list" class="checkpoint-list"></div>
-
-      <div class="sidebar-footer">
-        <button class="btn btn-green"  onclick="addRoute()">+ Маршрут</button>
-        <button class="btn btn-yellow" onclick="exportRouteSQL()">⬇ SQL (выбранный)</button>
-        <button class="btn btn-yellow" onclick="exportAllRoutesSQL()">⬇ SQL (все)</button>
-        <button class="btn btn-red"    onclick="resetRoutesData()">↺ Сброс данных</button>
+      <div class="sidebar-footer modern-footer">
+        <button class="ui-btn ui-btn-primary" onclick="addRoute()">+ Маршрут</button>
+        <button class="ui-btn" onclick="exportRouteSQL()">SQL</button>
+        <button class="ui-btn" onclick="exportAllRoutesSQL()">SQL все</button>
+        <button class="ui-btn ui-btn-danger" onclick="resetRoutesData()">Сброс</button>
       </div>
     </div>
-
   </div>
 
   <!-- ===================== CANVAS AREA ===================== -->
   <div id="canvas-area">
-
-    <!-- Topbar -->
-    <div id="topbar">
+    <div id="topbar" class="modern-topbar">
       <button class="topbar-menu-btn" id="topbar-menu-btn" onclick="toggleMobilePanel()" aria-label="Меню">
         <svg width="18" height="18" viewBox="0 0 18 18" fill="none"><rect x="2" y="4" width="14" height="1.5" rx="1" fill="currentColor"/><rect x="2" y="8.25" width="14" height="1.5" rx="1" fill="currentColor"/><rect x="2" y="12.5" width="14" height="1.5" rx="1" fill="currentColor"/></svg>
       </button>
-      <span class="topbar-mode-label">Режим:</span>
-      <button class="mode-btn active" id="mode-tl"        onclick="setMode('tl')">🚦 Светофоры</button>
-      <button class="mode-btn"        id="mode-zone-poly" onclick="startZonePoly()">⬡ Полигон</button>
-      <button class="mode-btn"        id="mode-zone-rect" onclick="startZoneRect()">▭ Rect</button>
-      <button class="mode-btn"        id="mode-pan"       onclick="setMode('pan')">✋ Панорама</button>
+      <span class="topbar-mode-label">Инструмент</span>
+      <button class="mode-btn active" id="mode-tl"        onclick="setMode('tl')">Светофоры</button>
+      <button class="mode-btn"        id="mode-zone-poly" onclick="startZonePoly()">Полигон</button>
+      <button class="mode-btn"        id="mode-zone-rect" onclick="startZoneRect()">Rect</button>
+      <button class="mode-btn"        id="mode-pan"       onclick="setMode('pan')">Панорама</button>
 
       <div class="sep"></div>
       <button class="toggle on" id="btn-map"      onclick="toggleMap()">Карта</button>
@@ -112,16 +135,13 @@
       </span>
 
       <div class="sep"></div>
-      <button class="mode-btn cal" id="mode-cal" onclick="setMode('cal')">⊕ Калибровка</button>
+      <button class="mode-btn cal" id="mode-cal" onclick="setMode('cal')">Калибровка</button>
     </div>
 
-    <!-- Canvas -->
     <div id="canvas-wrap">
       <canvas id="canvas"></canvas>
-
-      <!-- Calibration panel -->
       <div id="cal-panel">
-        <h4>⊕ Калибровка карты</h4>
+        <h4>Калибровка карты</h4>
         <p>Кликни на карте → введи реальные игровые координаты этой точки. Нужно минимум 2 точки.</p>
         <div id="cal-points"></div>
         <button id="cal-apply-btn" onclick="applyCalibration()" disabled>
@@ -132,75 +152,142 @@
       </div>
     </div>
 
-    <!-- Info bar -->
-    <div id="info-bar">Нарисуй путь (ЛКМ) → нажми ▶ Запуск</div>
+    <div id="info-bar">Готово к работе</div>
   </div>
 
-  <!-- ===================== MOBILE BOTTOM SHEET ===================== -->
   <div id="mobile-backdrop" onclick="closeMobilePanel()"></div>
   <div id="mobile-panel">
     <div id="mobile-panel-handle"><div class="handle-bar"></div></div>
-    <div id="mobile-panel-inner">
-      <!-- tabs duplicated via JS -->
-    </div>
+    <div id="mobile-panel-inner"></div>
   </div>
 
-</div><!-- #app -->
+</div>
 
-<!-- ===================== TOAST ===================== -->
 <div id="toast"></div>
 
-<!-- ===================== EXPORT MODAL ===================== -->
 <div class="modal-overlay" id="export-overlay">
   <div class="modal-box" id="export-box">
     <div class="modal-title" id="export-title">Экспорт</div>
     <textarea class="code-textarea" id="export-textarea" readonly onclick="this.select()"></textarea>
     <div class="modal-actions">
-      <button class="btn btn-accent" onclick="copyExport()">Скопировать</button>
-      <button class="btn"            onclick="closeExportModal()">Закрыть</button>
+      <button class="ui-btn ui-btn-primary" onclick="copyExport()">Скопировать</button>
+      <button class="ui-btn" onclick="closeExportModal()">Закрыть</button>
     </div>
   </div>
 </div>
 
-<!-- ===================== CONFIRM MODAL ===================== -->
 <div class="modal-overlay" id="confirm-overlay">
   <div class="modal-box" id="confirm-box">
     <div class="modal-title" id="confirm-msg">Удалить?</div>
     <div class="modal-actions">
-      <button class="btn btn-red"    onclick="confirmYes()">Удалить</button>
-      <button class="btn"            onclick="confirmNo()">Отмена</button>
+      <button class="ui-btn ui-btn-danger" onclick="confirmYes()">Удалить</button>
+      <button class="ui-btn" onclick="confirmNo()">Отмена</button>
     </div>
   </div>
 </div>
 
-<!-- ===================== IMPORT MODAL ===================== -->
 <div class="modal-overlay" id="import-overlay">
   <div class="modal-box" id="import-box">
-    <div class="modal-title">Импорт из trafic_lights.pwn</div>
-    <div class="modal-subtitle">
-      Вставь содержимое файла <code>trafic_lights.pwn</code> (или только блок
-      <code>g_traffic_lights_info[…] = { … };</code>):
-    </div>
+    <div class="modal-title">Импорт светофоров</div>
+    <div class="modal-subtitle">Вставь содержимое <code>trafic_lights.pwn</code>.</div>
     <textarea class="code-textarea" id="import-textarea" placeholder="Вставь текст .pwn сюда..."></textarea>
     <div id="import-result"></div>
     <div class="modal-actions">
-      <button class="btn btn-accent" onclick="doImport()">Импортировать</button>
-      <button class="btn"            onclick="closeImport()">Отмена</button>
+      <button class="ui-btn ui-btn-primary" onclick="doImport()">Импортировать</button>
+      <button class="ui-btn" onclick="closeImport()">Отмена</button>
     </div>
   </div>
 </div>
 
-<!-- ===================== SCRIPTS ===================== -->
-<!--
-  Load order matters — each file depends on symbols from previous ones:
-  state → map → traffic-lights → zones → import-export → ui → canvas (init)
--->
+<div class="modal-overlay" id="territory-import-overlay">
+  <div class="modal-box" id="territory-import-box">
+    <div class="modal-title">Импорт территорий</div>
+    <div class="modal-subtitle">Вставь <code>zones.txt</code> с <code>g_city</code> / <code>g_zone</code>.</div>
+    <textarea class="code-textarea" id="territory-import-textarea" placeholder="Вставь текст zones.txt сюда..."></textarea>
+    <div id="territory-import-result"></div>
+    <div class="modal-actions">
+      <button class="ui-btn ui-btn-primary" onclick="doTerritoryImport()">Импортировать</button>
+      <button class="ui-btn" onclick="closeTerritoryImport()">Отмена</button>
+    </div>
+  </div>
+</div>
+
+<!-- Type manager -->
+<div class="modal-overlay" id="type-manager-overlay">
+  <div class="modal-box type-manager-box">
+    <div class="flex items-start justify-between gap-3 mb-4">
+      <div>
+        <div class="modal-title mb-0" id="tm-title">Новый тип зон</div>
+        <p class="text-xs text-zinc-500 mt-1">Создай тип и шаблон экспорта без правок кода.</p>
+      </div>
+      <button class="ui-btn" onclick="closeTypeManager()">Закрыть</button>
+    </div>
+    <div class="type-manager-grid">
+      <div id="type-manager-list" class="type-manager-list"></div>
+      <div class="type-manager-form space-y-3">
+        <label class="block">
+          <span class="ui-label">Название типа</span>
+          <input id="tm-label" class="ui-input" placeholder="Например: Склады">
+        </label>
+        <div class="grid grid-cols-2 gap-2">
+          <label class="block">
+            <span class="ui-label">Префикс имени</span>
+            <input id="tm-prefix" class="ui-input" placeholder="Склад">
+          </label>
+          <label class="block">
+            <span class="ui-label">Цвет</span>
+            <input id="tm-color" class="ui-input h-9" type="color" value="#38bdf8">
+          </label>
+        </div>
+        <label class="block">
+          <span class="ui-label">Формат экспорта</span>
+          <select id="tm-preset" class="ui-input" onchange="onTypePresetChange()">
+            <option value="poly">Полигон (.pwn блок)</option>
+            <option value="aabb">AABB</option>
+            <option value="pawn_array">Массив полигонов</option>
+            <option value="defines">#define + verts</option>
+            <option value="custom">Свой шаблон</option>
+          </select>
+        </label>
+        <div id="tm-custom-fields" class="hidden space-y-2">
+          <label class="block">
+            <span class="ui-label">Шаблон одной зоны</span>
+            <textarea id="tm-entry" class="code-textarea !h-28" spellcheck="false"></textarea>
+          </label>
+          <label class="block">
+            <span class="ui-label">Разделитель</span>
+            <input id="tm-join" class="ui-input font-mono text-xs" value=",\n">
+          </label>
+          <label class="block">
+            <span class="ui-label">Обёртка файла ({{entries}})</span>
+            <textarea id="tm-file" class="code-textarea !h-20" spellcheck="false"></textarea>
+          </label>
+          <p class="text-[11px] text-zinc-500 leading-relaxed">
+            Плейсхолдеры: <code>{{name}}</code> <code>{{points_lines}}</code> <code>{{points_csv}}</code>
+            <code>{{x1}}</code> <code>{{y1}}</code> <code>{{x2}}</code> <code>{{y2}}</code>
+            <code>{{name_id}}</code> <code>{{index}}</code> <code>{{count}}</code>
+          </p>
+        </div>
+        <div class="flex flex-wrap gap-2 pt-1">
+          <button class="ui-btn ui-btn-primary" onclick="saveTypeFromManager()">Сохранить тип</button>
+          <button class="ui-btn" onclick="previewTypeExport()">Превью экспорта</button>
+          <button class="ui-btn" onclick="openTypeManager(null)">Сбросить форму</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
 <script src="js/state.js"></script>
 <script src="js/map.js"></script>
 <script src="js/traffic-lights.js"></script>
+<script src="js/territory-format.js"></script>
+<script src="js/territory-zones-data.js"></script>
 <script src="js/zones.js"></script>
 <script src="js/routes.js"></script>
 <script src="js/import-export.js"></script>
+<script src="js/custom-types.js"></script>
+<script src="js/zone-types.js"></script>
 <script src="js/ui.js"></script>
 <script src="js/canvas.js"></script>
 <script src="js/mobile.js"></script>

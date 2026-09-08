@@ -22,6 +22,8 @@ function setMode(m) {
 
 // --- Tabs ---
 function switchTab(t) {
+  if (t === 'routes' && !FEATURES.ROUTES_TAB) return;
+
   const tabs = ['tl', 'zones', 'routes'];
   document.querySelectorAll('.tab-btn').forEach((b, i) => b.classList.toggle('active', tabs[i] === t));
   document.querySelectorAll('.tab-panel').forEach((p, i) => p.classList.toggle('active', tabs[i] === t));
@@ -30,7 +32,6 @@ function switchTab(t) {
   const isZones  = t === 'zones';
   const isRoutes = t === 'routes';
 
-  // Show/hide mode buttons
   const el_tl       = document.getElementById('mode-tl');
   const el_poly     = document.getElementById('mode-zone-poly');
   const el_rect     = document.getElementById('mode-zone-rect');
@@ -52,6 +53,7 @@ function switchTab(t) {
     activeContext = 'zones';
     if (mode === 'tl') setMode('pan');
     cancelAddCheckpointMode?.();
+    switchZonesSubTab(zonesSubTab || 'user');
   } else if (t === 'routes') {
     activeContext = 'routes';
     if (['tl','zone-poly','zone-rect'].includes(mode)) setMode('pan');
@@ -121,9 +123,16 @@ window.addEventListener('keydown', e => {
   if (e.key === '2') setMode('pan');
   if (e.key === 'm' || e.key === 'M') toggleMap();
 
-  if ((e.key === 'Delete' || e.key === 'Backspace') && selectedIdx !== null) {
+  if ((e.key === 'Delete' || e.key === 'Backspace') && selectedIdx !== null && activeContext === 'tl') {
     confirmRemoveTL(selectedIdx);
     e.preventDefault();
+  }
+  if ((e.key === 'Delete' || e.key === 'Backspace') && selectedZoneIdx !== null && activeContext === 'zones') {
+    const z = zones[selectedZoneIdx];
+    if (z && !z.isGreenZone) {
+      removeZone(selectedZoneIdx);
+      e.preventDefault();
+    }
   }
 });
 

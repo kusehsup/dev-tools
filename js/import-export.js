@@ -143,9 +143,10 @@ function exportZone(i, fmt) {
 }
 
 function exportAllZones() {
-  if (zones.length === 0) { showToast('Нет зон для экспорта'); return; }
+  const list = zones.filter(isUserZone);
+  if (list.length === 0) { showToast('Нет зон для экспорта'); return; }
 
-  const code = zones.map(z => {
+  const code = list.map(z => {
     let pts = z.points;
     if (z.type === 'rect' && pts.length === 2) {
       const [a, b] = pts;
@@ -165,9 +166,10 @@ function exportAllZones() {
 }
 
 function exportAllZonesPwn() {
-  if (zones.length === 0) { showToast('Нет зон для экспорта'); return; }
+  const list = zones.filter(isUserZone);
+  if (list.length === 0) { showToast('Нет зон для экспорта'); return; }
 
-  const blocks = zones.map(z => {
+  const blocks = list.map(z => {
     let pts = z.points;
     if (z.type === 'rect' && pts.length === 2) {
       const [a, b] = pts;
@@ -210,6 +212,58 @@ function exportParkingZonesPwn() {
   openExportModal('Зоны парковщика (.pwn)', blocks.join(',\n'));
 }
 
+function exportTerritoryZonesPwn() {
+  const { cities, streets } = collectTerritoryExportLists();
+  if (!cities.length && !streets.length) {
+    showToast('Нет территорий для экспорта');
+    return;
+  }
+  const tooLong = [...cities, ...streets].filter(z => (z.points || []).length > TERRITORY_MAX_POINTS);
+  if (tooLong.length) {
+    showToast(`У ${tooLong.length} зон больше ${TERRITORY_MAX_POINTS} точек — лишние обрезаны при экспорте`, 2800);
+  }
+  openExportModal('Экспорт территорий (zones.txt)', formatTerritoryPwn(cities, streets));
+}
+
+function exportSingleTerritory(i) {
+  const z = zones[i];
+  if (!z?.isTerritoryZone) { showToast('Это не территория'); return; }
+  const entry = {
+    type: z.territoryType || defaultTerritoryType(z.territoryKind),
+    name: z.name,
+    points: zonePointsAsPoly(z),
+    extra: z.extra || 0,
+  };
+  openExportModal(`zones.txt: ${z.name}`, formatTerritoryEntry(entry) + ',');
+}
+
+function openTerritoryImport() {
+  document.getElementById('territory-import-overlay').classList.add('open');
+  document.getElementById('territory-import-result').textContent = '';
+}
+
+function closeTerritoryImport() {
+  document.getElementById('territory-import-overlay').classList.remove('open');
+}
+
+function doTerritoryImport() {
+  const src = document.getElementById('territory-import-textarea').value;
+  const resultEl = document.getElementById('territory-import-result');
+  const parsed = parseTerritoryPwn(src);
+  const cityN = parsed.cities.length;
+  const zoneN = parsed.streets.length;
+  if (cityN === 0 && zoneN === 0) {
+    resultEl.style.color = 'var(--red)';
+    resultEl.textContent = 'Не найдено g_city / g_zone. Проверь формат zones.txt.';
+    return;
+  }
+  applyTerritoryImport(parsed);
+  resultEl.style.color = 'var(--green)';
+  resultEl.textContent = `Импортировано: ${cityN} городов, ${zoneN} районов.`;
+  showToast(`Импортировано ${cityN + zoneN} территорий`);
+  setTimeout(closeTerritoryImport, 900);
+}
+
 function exportGreenZoneSQL(i) {
   const z   = zones[i];
   const pts = z.points;
@@ -218,18 +272,34 @@ function exportGreenZoneSQL(i) {
   const nk  = z.noKnife      ?? 1;
   const act = z.isActive     ?? 1;
 
-  let minZ = '0', maxZ = '100';
-  const gz = GREEN_ZONES_DATA.find(g => g.dbId === z.dbId);
-  if (gz) {
+  let minZ = z.minZ ?? '0', maxZ = z.maxZ ?? '100';
+  const gz = GREEN_ZONES_DATA.find(g => g.id === z.dbId || g.dbId === z.dbId);
+  if (gz && (minZ === '0' && maxZ === '100')) {
     try { const arr = JSON.parse(gz.polygon_points); if (arr?.[0]) { minZ = arr[0][0]; maxZ = arr[0][1]; } } catch {}
   }
 
   const polyJson = JSON.stringify([[minZ, maxZ], pts.flatMap(p => [p.x.toFixed(4), p.y.toFixed(4)])]);
   const code =
     `INSERT INTO green_zones (name, min_x, max_x, min_y, max_y, is_use_polygon, polygon_points, virtual_world, is_no_collision, is_no_knife, is_active)\n` +
-    `VALUES ('${z.name}', 0, 0, 0, 0, 1, '${polyJson}', ${vw}, ${nc}, ${nk}, ${act});`;
+    `VALUES ('${z.name.replace(/'/g, "\\'")}', 0, 0, 0, 0, 1, '${polyJson}', ${vw}, ${nc}, ${nk}, ${act});`;
 
   openExportModal(`SQL: ${z.name}`, code);
+}
+
+function exportAllGreenZonesSQL() {
+  const list = zones.filter(z => z.isGreenZone || z.kind === 'green');
+  if (!list.length) { showToast('Нет GreenZones'); return; }
+  const blocks = list.map(z => {
+    const vw  = z.virtualWorld ?? 0;
+    const nc  = z.noCollision  ?? 0;
+    const nk  = z.noKnife      ?? 1;
+    const act = z.isActive     ?? 1;
+    const minZ = z.minZ ?? '0', maxZ = z.maxZ ?? '100';
+    const polyJson = JSON.stringify([[minZ, maxZ], z.points.flatMap(p => [p.x.toFixed(4), p.y.toFixed(4)])]);
+    return `INSERT INTO green_zones (name, min_x, max_x, min_y, max_y, is_use_polygon, polygon_points, virtual_world, is_no_collision, is_no_knife, is_active)\n` +
+      `VALUES ('${z.name.replace(/'/g, "\\'")}', 0, 0, 0, 0, 1, '${polyJson}', ${vw}, ${nc}, ${nk}, ${act});`;
+  });
+  openExportModal('GreenZones SQL', blocks.join('\n\n'));
 }
 
 // --- Export modal helper ---

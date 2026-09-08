@@ -39,6 +39,8 @@
   --orange-dim:    rgba(224,120,50,0.15);
   --purple:        #9b72e8;
   --purple-dim:    rgba(155,114,232,0.18);
+  --cyan:          #26c6da;
+  --cyan-dim:      rgba(38,198,218,0.15);
 
   /* TL status colors */
   --tl-green:      #3db76a;

@@ -31,8 +31,15 @@ const ZONE_COLORS = ['#4caf50','#2196f3','#ff9800','#e91e63','#9c27b0','#00bcd4'
 const STORAGE = {
   MAP_CAL:  'tl_map_cal',
   TL_LIST:  'tl_traffic_lights',
-  ZONES:    'tl_user_zones',
-  PARKING:  'tl_parking_zones',
+  ZONES:      'tl_user_zones',
+  PARKING:    'tl_parking_zones',
+  TERRITORY:  'tl_territory_zones',
+  GREEN:      'tl_green_zones',
+};
+
+const FEATURES = {
+  // Set true to show bus/train route editors again.
+  ROUTES_TAB: false,
 };
 
 // --- Viewport ---
@@ -70,7 +77,12 @@ let greenZonesLoaded = false;
 let GREEN_ZONES_DATA = [];
 let parkingZonesLoaded = false;
 let PARKING_ZONES_DATA = [];
-let zonesSubTab      = 'user'; // 'user' | 'parking'
+let territoryZonesLoaded = false;
+let TERRITORY_ZONES_DATA = { cities: [], streets: [] };
+let userZonesLoaded  = false;
+let zonesSubTab      = 'user';
+let zoneSearch       = '';
+let territoryFilter  = 'all';  // 'all' | 'city' | 'zone'
 
 // --- Calibration ---
 let calPoints    = [];
