@@ -69,6 +69,7 @@ function initZoneTypes() {
   registerZoneType({
     id: 'user',
     label: 'Свои',
+    builtin: true,
     canDraw: true,
     canEdit: true,
     canDelete: true,
@@ -88,23 +89,21 @@ function initZoneTypes() {
     },
     createdToast: () => 'Зона создана',
     emptyText: () => 'Нет своих зон — нарисуй полигон или прямоугольник',
-    footer() {
-      return `
-        <button class="btn btn-green" onclick="startZonePoly()">+ Полигон</button>
-        <button class="btn btn-green" onclick="startZoneRect()">+ Rect</button>
-        <button class="btn btn-blue" onclick="exportAllZones()">Экспорт всех</button>
-        <button class="btn btn-blue" onclick="exportAllZonesPwn()">Экспорт .pwn</button>`;
-    },
-    exportButtons: i => `
-      <div style="display:flex;gap:6px;flex-wrap:wrap">
-        <button class="zone-export-btn" onclick="exportZone(${i},'rect')">AABB</button>
-        <button class="zone-export-btn" onclick="exportZone(${i},'poly')">Poly</button>
-      </div>`,
+    footer: () => footerActions([
+      ['+ Полигон', 'startZonePoly()', 'primary'],
+      ['+ Rect', 'startZoneRect()', ''],
+      ['Экспорт', 'exportAllZonesPwn()', 'accent'],
+    ]),
+    exportButtons: i => exportChipRow([
+      [`exportZone(${i},'rect')`, 'AABB'],
+      [`exportZone(${i},'poly')`, 'Poly'],
+    ]),
   });
 
   registerZoneType({
     id: 'green',
     label: 'GreenZones',
+    builtin: true,
     canDraw: true,
     canEdit: true,
     canDelete: true,
@@ -128,23 +127,20 @@ function initZoneTypes() {
     createdToast: () => 'GreenZone создана',
     confirmDelete: z => `Удалить GreenZone «${z.name}»?`,
     emptyText: () => 'Нет GreenZones — нарисуй полигон или сбрось к исходным',
-    footer() {
-      return `
-        <button class="btn btn-green" onclick="startZonePoly()">+ Полигон</button>
-        <button class="btn btn-green" onclick="startZoneRect()">+ Rect</button>
-        <button class="btn btn-blue" onclick="exportAllGreenZonesSQL()">Экспорт SQL</button>
-        <button class="btn btn-red" onclick="resetGreenZones()">↺ Сброс</button>`;
-    },
+    footer: () => footerActions([
+      ['+ Полигон', 'startZonePoly()', 'primary'],
+      ['+ Rect', 'startZoneRect()', ''],
+      ['Экспорт SQL', 'exportAllGreenZonesSQL()', 'accent'],
+      ['Сброс', 'resetGreenZones()', 'danger'],
+    ]),
     cardExtra: greenZoneCardExtra,
-    exportButtons: i => `
-      <div style="display:flex;gap:6px;flex-wrap:wrap">
-        <button class="zone-export-btn btn-green" onclick="exportGreenZoneSQL(${i})">SQL INSERT</button>
-      </div>`,
+    exportButtons: i => exportChipRow([[`exportGreenZoneSQL(${i})`, 'SQL']]),
   });
 
   registerZoneType({
     id: 'parking',
     label: 'Парковщик',
+    builtin: true,
     canDraw: true,
     canEdit: true,
     canDelete: true,
@@ -166,23 +162,22 @@ function initZoneTypes() {
     },
     createdToast: () => 'Зона парковщика создана',
     emptyText: () => 'Нет зон парковщика — нарисуй полигон',
-    footer() {
-      return `
-        <button class="btn btn-green" onclick="startZonePoly()">+ Полигон</button>
-        <button class="btn btn-green" onclick="startZoneRect()">+ Rect</button>
-        <button class="btn btn-blue" onclick="exportParkingZonesPwn()">Экспорт .pwn</button>
-        <button class="btn btn-red" onclick="resetParkingZones()">↺ Сброс</button>`;
-    },
-    exportButtons: i => `
-      <div style="display:flex;gap:6px;flex-wrap:wrap">
-        <button class="zone-export-btn" onclick="exportZone(${i},'poly')">Poly</button>
-        <button class="zone-export-btn" onclick="exportZone(${i},'rect')">AABB</button>
-      </div>`,
+    footer: () => footerActions([
+      ['+ Полигон', 'startZonePoly()', 'primary'],
+      ['+ Rect', 'startZoneRect()', ''],
+      ['Экспорт', 'exportParkingZonesPwn()', 'accent'],
+      ['Сброс', 'resetParkingZones()', 'danger'],
+    ]),
+    exportButtons: i => exportChipRow([
+      [`exportZone(${i},'poly')`, 'Poly'],
+      [`exportZone(${i},'rect')`, 'AABB'],
+    ]),
   });
 
   registerZoneType({
     id: 'territory',
     label: 'Территории',
+    builtin: true,
     canDraw: true,
     canEdit: true,
     canDelete: true,
@@ -213,37 +208,54 @@ function initZoneTypes() {
     confirmDelete: z => `Удалить территорию «${z.name}»?`,
     emptyText: () => {
       const q = (zoneSearch || '').trim();
-      return q ? `Ничего не найдено по «${q}»` : 'Нет территорий — нарисуй полигон или сбрось к исходным';
+      return q ? `Ничего не найдено по «${q}»` : 'Нет территорий — нарисуй полигон или сбрось';
     },
     extraToolbar: territoryToolbarHTML,
     filter: territoryCardVisible,
-    badge: z => `<span class="territory-kind-badge ${z.territoryKind === TERRITORY_KIND_ZONE ? 'zone' : 'city'}">${
-      z.territoryKind === TERRITORY_KIND_ZONE ? 'район' : 'город'
-    }</span>`,
+    badge: z => `<span class="inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-semibold ${
+      z.territoryKind === TERRITORY_KIND_ZONE ? 'bg-violet-500/15 text-violet-300' : 'bg-cyan-500/15 text-cyan-300'
+    }">${z.territoryKind === TERRITORY_KIND_ZONE ? 'район' : 'город'}</span>`,
     cardExtra: territoryCardExtra,
-    footer() {
-      return `
-        <button class="btn btn-green" onclick="startZonePoly()">+ Полигон</button>
-        <button class="btn btn-green" onclick="startZoneRect()">+ Rect</button>
-        <button class="btn btn-blue" onclick="exportTerritoryZonesPwn()">Экспорт zones.txt</button>
-        <button class="btn btn-purple" onclick="openTerritoryImport()">⬆ Импорт</button>
-        <button class="btn btn-red" onclick="resetTerritoryZones()">↺ Сброс</button>`;
-    },
-    exportButtons: i => `
-      <div style="display:flex;gap:6px;flex-wrap:wrap">
-        <button class="zone-export-btn" onclick="exportSingleTerritory(${i})">zones.txt</button>
-      </div>`,
+    footer: () => footerActions([
+      ['+ Полигон', 'startZonePoly()', 'primary'],
+      ['+ Rect', 'startZoneRect()', ''],
+      ['Экспорт', 'exportTerritoryZonesPwn()', 'accent'],
+      ['Импорт', 'openTerritoryImport()', ''],
+      ['Сброс', 'resetTerritoryZones()', 'danger'],
+    ]),
+    exportButtons: i => exportChipRow([[`exportSingleTerritory(${i})`, 'zones.txt']]),
   });
 
+  if (typeof registerAllCustomZoneTypes === 'function') {
+    registerAllCustomZoneTypes();
+  }
+
+  if (!getZoneType(zonesSubTab)) zonesSubTab = 'user';
   renderZoneTypeChrome();
+}
+
+function footerActions(items) {
+  return items.map(([label, onclick, kind]) => {
+    const cls = kind === 'primary' ? 'ui-btn ui-btn-primary'
+      : kind === 'accent' ? 'ui-btn ui-btn-accent'
+      : kind === 'danger' ? 'ui-btn ui-btn-danger'
+      : 'ui-btn';
+    return `<button class="${cls}" onclick="${onclick}">${label}</button>`;
+  }).join('');
+}
+
+function exportChipRow(items) {
+  return `<div class="flex flex-wrap gap-1.5">${items.map(([fn, label]) =>
+    `<button class="zone-export-btn" onclick="${fn}">${label}</button>`
+  ).join('')}</div>`;
 }
 
 function territoryToolbarHTML() {
   return `
-    <div class="territory-filters">
-      <button class="territory-filter-btn ${territoryFilter === 'all' ? 'active' : ''}" onclick="setTerritoryFilter('all')">Все</button>
-      <button class="territory-filter-btn ${territoryFilter === 'city' ? 'active' : ''}" onclick="setTerritoryFilter('city')">Города</button>
-      <button class="territory-filter-btn ${territoryFilter === 'zone' ? 'active' : ''}" onclick="setTerritoryFilter('zone')">Районы</button>
+    <div class="flex gap-1">
+      <button class="ui-chip ${territoryFilter === 'all' ? 'ui-chip-active' : ''}" onclick="setTerritoryFilter('all')">Все</button>
+      <button class="ui-chip ${territoryFilter === 'city' ? 'ui-chip-active' : ''}" onclick="setTerritoryFilter('city')">Города</button>
+      <button class="ui-chip ${territoryFilter === 'zone' ? 'ui-chip-active' : ''}" onclick="setTerritoryFilter('zone')">Районы</button>
     </div>`;
 }
 
@@ -254,20 +266,20 @@ function territoryCardExtra(z, i) {
     `<option value="${t}" ${z.territoryType === t ? 'selected' : ''}>${t}</option>`
   ).join('');
   return `
-    <div class="tl-card-row">
-      <div class="field">
-        <span class="field-label">Тип зоны</span>
-        <select class="field-input" onchange="setTerritoryKind(${i}, this.value)" onclick="event.stopPropagation()">
+    <div class="grid grid-cols-2 gap-2">
+      <label class="block">
+        <span class="ui-label">Вид</span>
+        <select class="ui-input" onchange="setTerritoryKind(${i}, this.value)" onclick="event.stopPropagation()">
           <option value="${TERRITORY_KIND_CITY}" ${kind === 'city' ? 'selected' : ''}>Город</option>
-          <option value="${TERRITORY_KIND_ZONE}" ${kind === 'zone' ? 'selected' : ''}>Улица / район</option>
+          <option value="${TERRITORY_KIND_ZONE}" ${kind === 'zone' ? 'selected' : ''}>Район</option>
         </select>
-      </div>
-      <div class="field">
-        <span class="field-label">Константа</span>
-        <select class="field-input" onchange="setTerritoryType(${i}, this.value)" onclick="event.stopPropagation()">
+      </label>
+      <label class="block">
+        <span class="ui-label">Константа</span>
+        <select class="ui-input" onchange="setTerritoryType(${i}, this.value)" onclick="event.stopPropagation()">
           ${typeOpts}
         </select>
-      </div>
+      </label>
     </div>`;
 }
 
@@ -275,41 +287,32 @@ function greenZoneCardExtra(z, i) {
   const gz = GREEN_ZONES_DATA.find(g => g.dbId === z.dbId || g.id === z.dbId);
   let zRange = '';
   if (gz) {
-    try { const arr = JSON.parse(gz.polygon_points); if (arr?.[0]) zRange = `Z: ${arr[0][0]}..${arr[0][1]} | `; } catch {}
+    try { const arr = JSON.parse(gz.polygon_points); if (arr?.[0]) zRange = `Z ${arr[0][0]}..${arr[0][1]} · `; } catch {}
   } else if (z.minZ != null) {
-    zRange = `Z: ${z.minZ}..${z.maxZ} | `;
+    zRange = `Z ${z.minZ}..${z.maxZ} · `;
   }
-  const idLabel = z.dbId != null ? `ID: ${z.dbId}` : 'новая';
+  const idLabel = z.dbId != null ? `ID ${z.dbId}` : 'новая';
   return `
-    <div class="zone-card-meta" style="color:#88cc88">${zRange}${idLabel}</div>
-    <div class="gz-fields">
-      <div class="field">
-        <span class="field-label">Вирт. мир</span>
-        <input class="field-input" type="number" min="0" value="${z.virtualWorld ?? 0}"
+    <div class="text-[11px] text-emerald-400/80 font-mono">${zRange}${idLabel}</div>
+    <div class="grid gap-2">
+      <label class="block">
+        <span class="ui-label">Вирт. мир</span>
+        <input class="ui-input" type="number" min="0" value="${z.virtualWorld ?? 0}"
           onchange="zones[${i}].virtualWorld=parseInt(this.value)||0;saveGreenZones()" onclick="event.stopPropagation()">
-      </div>
-      <div class="gz-checkboxes">
-        <label class="gz-check-label">
-          <input type="checkbox" ${z.noCollision ? 'checked' : ''} onchange="zones[${i}].noCollision=this.checked?1:0;saveGreenZones()" onclick="event.stopPropagation()">
-          Нет коллизии
-        </label>
-        <label class="gz-check-label">
-          <input type="checkbox" ${z.noKnife ? 'checked' : ''} onchange="zones[${i}].noKnife=this.checked?1:0;saveGreenZones()" onclick="event.stopPropagation()">
-          Нет ножа
-        </label>
-        <label class="gz-check-label">
-          <input type="checkbox" ${z.isActive ? 'checked' : ''} onchange="zones[${i}].isActive=this.checked?1:0;saveGreenZones()" onclick="event.stopPropagation()">
-          Активна
-        </label>
+      </label>
+      <div class="flex flex-wrap gap-3 text-xs text-zinc-400">
+        <label class="inline-flex items-center gap-1.5"><input type="checkbox" ${z.noCollision ? 'checked' : ''} onchange="zones[${i}].noCollision=this.checked?1:0;saveGreenZones()" onclick="event.stopPropagation()"> Нет коллизии</label>
+        <label class="inline-flex items-center gap-1.5"><input type="checkbox" ${z.noKnife ? 'checked' : ''} onchange="zones[${i}].noKnife=this.checked?1:0;saveGreenZones()" onclick="event.stopPropagation()"> Нет ножа</label>
+        <label class="inline-flex items-center gap-1.5"><input type="checkbox" ${z.isActive ? 'checked' : ''} onchange="zones[${i}].isActive=this.checked?1:0;saveGreenZones()" onclick="event.stopPropagation()"> Активна</label>
       </div>
     </div>`;
 }
 
 function renderZoneTypeChrome() {
-  const tabs = document.getElementById('zones-subtabs');
-  if (tabs) {
-    tabs.innerHTML = allZoneTypes().map(t =>
-      `<button class="zones-subtab ${t.id === zonesSubTab ? 'active' : ''}" onclick="switchZonesSubTab('${t.id}')">${t.label}</button>`
+  const select = document.getElementById('zone-type-select');
+  if (select) {
+    select.innerHTML = allZoneTypes().map(t =>
+      `<option value="${t.id}" ${t.id === zonesSubTab ? 'selected' : ''}>${t.label}</option>`
     ).join('');
   }
   const extra = document.getElementById('zone-type-extra');
@@ -317,6 +320,12 @@ function renderZoneTypeChrome() {
   if (extra) extra.innerHTML = type?.extraToolbar ? type.extraToolbar() : '';
   const footer = document.getElementById('zones-footer');
   if (footer) footer.innerHTML = type?.footer ? type.footer() : '';
+  const hint = document.getElementById('zone-type-hint');
+  if (hint) {
+    hint.textContent = type?.builtin === false
+      ? 'Свой тип — экспорт по шаблону из настроек типа'
+      : 'На карте только выбранный тип';
+  }
 }
 
 function setZoneSearch(q) {
@@ -456,46 +465,42 @@ function renderZoneList() {
     const ymin = Math.min(...ys).toFixed(2), ymax = Math.max(...ys).toFixed(2);
     const ptCount = z.type === 'rect' ? 4 : pts.length;
     const canEdit = type?.canEdit !== false;
-    const persistFn = type?.save ? `${type.save.name}()` : '';
+    const persistFn = 'persistEditedZone(zones[' + i + '])';
 
     const swatches = canEdit && type?.showSwatches ? ZONE_COLORS.map(c =>
       `<div class="color-swatch ${z.color === c ? 'active' : ''}" style="background:${c}"
          onclick="zones[${i}].color='${c}';${persistFn};renderZoneList();draw()"></div>`
     ).join('') : '';
 
+    const nameInput = canEdit
+      ? `<input class="ui-input mt-1" type="text" value="${escapeHtmlAttr(z.name)}"
+          onchange="zones[${i}].name=this.value;${persistFn};renderZoneList();"
+          onclick="event.stopPropagation()" placeholder="Название">`
+      : '';
+
     const removeBtn = type?.canDelete === false
       ? ''
-      : `<button class="btn-remove" onclick="event.stopPropagation();removeZone(${i})">✕</button>`;
-
-    const nameInput = canEdit
-      ? `<input class="field-input" type="text" value="${escapeHtmlAttr(z.name)}"
-          onchange="zones[${i}].name=this.value;${persistFn};renderZoneList();"
-          onclick="event.stopPropagation()">`
-      : '';
+      : `<button class="btn-remove" onclick="event.stopPropagation();removeZone(${i})" title="Удалить">✕</button>`;
 
     const extra = type?.cardExtra ? type.cardExtra(z, i) : '';
     const exportBtns = type?.exportButtons ? type.exportButtons(i) : '';
     const badge = type?.badge ? type.badge(z) : '';
-    const bounds = hasPts
-      ? `<div class="zone-card-meta">X: ${xmin} .. ${xmax}</div>
-         <div class="zone-card-meta">Y: ${ymin} .. ${ymax}</div>`
-      : `<div class="zone-card-meta">Нет точек — нарисуй полигон</div>`;
+    const bounds = ''; // shown inline below title
 
     card.innerHTML = `
-      <div class="zone-card-header">
-        <div class="zone-card-title">
-          <div class="zone-color-dot" style="background:${z.color}"></div>
-          <span>${escapeHtmlAttr(z.name)}</span>
+      <div class="flex items-start justify-between gap-2">
+        <div class="flex items-center gap-2 min-w-0">
+          <span class="w-2.5 h-2.5 rounded-full shrink-0" style="background:${z.color}"></span>
+          <span class="text-sm font-medium text-zinc-100 truncate">${escapeHtmlAttr(z.name)}</span>
           ${badge}
         </div>
-        <div style="display:flex;align-items:center;gap:4px">
+        <div class="flex items-center gap-1 shrink-0">
           <button class="zone-export-btn" onclick="event.stopPropagation();focusZone(${i})">На карте</button>
           ${removeBtn}
         </div>
       </div>
-      <div class="zone-card-meta">${z.type === 'rect' ? 'Прямоугольник' : `Полигон · ${ptCount} вершин`}</div>
+      <div class="text-[11px] text-zinc-500">${z.type === 'rect' ? 'Прямоугольник' : `${ptCount} вершин`}${hasPts ? ` · X ${xmin}…${xmax}` : ''}</div>
       ${extra}
-      ${bounds}
       ${nameInput}
       ${swatches ? `<div class="color-swatch-row">${swatches}</div>` : ''}
       ${exportBtns}`;
@@ -516,8 +521,7 @@ function renderZoneList() {
 
   if (!el.querySelector('.zone-card')) {
     const empty = document.createElement('div');
-    empty.className = 'zone-card-meta';
-    empty.style.padding = '8px';
+    empty.className = 'rounded-xl border border-dashed border-white/10 px-4 py-8 text-center text-sm text-zinc-500';
     const q = (zoneSearch || '').trim();
     empty.textContent = q && type?.id !== 'territory'
       ? `Ничего не найдено по «${q}»`
@@ -530,7 +534,7 @@ function renderZoneList() {
     const total = zones.filter(z => zoneMatchesType(z, type.id)).length;
     const shown = zones.filter(zoneListVisible).length;
     const q = (zoneSearch || '').trim();
-    countEl.textContent = q ? `Найдено ${shown} из ${total}` : `${shown} зон`;
+    countEl.textContent = q ? `${shown} / ${total}` : `${shown}`;
   }
 }
 
