@@ -15,7 +15,7 @@ window.addEventListener('resize', resize);
 function draw() {
   ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-  if (showMap && mapImg.complete && mapImg.naturalWidth > 0) {
+  if (showMap) {
     drawMap();
   } else {
     drawGrid();
@@ -57,6 +57,7 @@ canvas.addEventListener('contextmenu', e => {
 canvas.addEventListener('mousedown', e => {
   // Middle mouse — always pan
   if (e.button === 1) {
+    cancelFocusAnimation?.();
     isPanning = true;
     panStart  = { x: e.offsetX, y: e.offsetY, vx: viewX, vy: viewY };
     e.preventDefault();
@@ -124,6 +125,7 @@ canvas.addEventListener('mousedown', e => {
         draw();
       }
     }
+    cancelFocusAnimation?.();
     isPanning = true;
     panStart  = { x: e.offsetX, y: e.offsetY, vx: viewX, vy: viewY };
     return;
@@ -289,6 +291,7 @@ canvas.addEventListener('mouseup', e => {
 
 canvas.addEventListener('wheel', e => {
   e.preventDefault();
+  cancelFocusAnimation?.();
   const w = screenToWorld(e.offsetX, e.offsetY);
   viewScale *= e.deltaY < 0 ? 1.12 : 0.9;
   viewScale  = Math.max(0.05, Math.min(20, viewScale));
@@ -328,10 +331,9 @@ initRoutesData().then(() => { renderRouteList(); draw(); });
   document.getElementById(id).style.display = 'none';
 });
 
-// 5. Wire up map image — onload must be set before src so cached images fire correctly
-mapImg.onload = () => draw();
-mapImg.src    = 'assets/Map.png';
+// 5. Load tiled map (falls back to assets/Map.png if API/tiles unavailable)
+initMapImage();
 
-// 6. Initial draw (renders grid + TLs while map may still be loading)
+// 6. Initial draw (renders grid + TLs while map/tiles may still be loading)
 draw();
 setInfo('1-светофор  2-панорама  M-карта');

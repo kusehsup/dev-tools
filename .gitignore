@@ -1,0 +1,7 @@
+node_modules/
+server/node_modules/
+assets/tiles/
+assets/map-meta.json
+assets/.upload-*.png
+.DS_Store
+*.log

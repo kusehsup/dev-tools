@@ -240,7 +240,10 @@ function registerCustomZoneType(def) {
 }
 
 function registerAllCustomZoneTypes() {
-  loadCustomTypeDefs().forEach(registerCustomZoneType);
+  loadCustomTypeDefs().forEach((def) => {
+    if (!def?.id || !def?.label) return;
+    registerCustomZoneType(def);
+  });
 }
 
 function upsertCustomTypeDef(def) {

@@ -251,6 +251,66 @@ canvas {
   word-break: break-all;
 }
 
+/* ---- Map PNG / tiles panel ---- */
+#map-panel {
+  display: none;
+  position: absolute;
+  top: var(--sp-3);
+  right: var(--sp-3);
+  z-index: 50;
+  background: var(--bg-elevated);
+  border: 1px solid var(--accent);
+  border-radius: var(--r-lg);
+  padding: var(--sp-4);
+  width: 310px;
+  font-size: 12px;
+  box-shadow: 0 8px 32px rgba(0,0,0,0.5);
+}
+#map-panel.open { display: block; }
+
+#map-panel h4 {
+  color: var(--accent);
+  font-size: 12px;
+  font-weight: 600;
+  margin-bottom: var(--sp-2);
+}
+
+#map-panel > p {
+  color: var(--text-secondary);
+  font-size: 11px;
+  margin-bottom: var(--sp-3);
+  line-height: 1.5;
+}
+
+.map-panel-status {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  color: var(--text-secondary);
+  margin-bottom: var(--sp-3);
+  line-height: 1.45;
+  word-break: break-word;
+}
+
+#map-panel .ui-label { margin-top: 2px; }
+#map-panel .ui-input { margin-bottom: var(--sp-3); }
+
+.map-panel-actions {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-2);
+}
+
+.map-panel-actions .ui-btn {
+  width: 100%;
+  justify-content: center;
+}
+
+.mode-btn.map-img.active {
+  background: var(--accent-dim, rgba(56,189,248,0.15));
+  border-color: var(--accent);
+  color: #a0aaff;
+}
+
 /* ---- Modals ---- */
 .modal-overlay {
   display: none;

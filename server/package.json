@@ -1,0 +1,16 @@
+{
+  "name": "dev-tools-api",
+  "version": "1.0.0",
+  "private": true,
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js",
+    "rebuild-tiles": "node scripts/rebuild-tiles.js"
+  },
+  "dependencies": {
+    "cors": "^2.8.6",
+    "express": "^5.2.1",
+    "multer": "^2.3.0",
+    "sharp": "^0.35.4"
+  }
+}

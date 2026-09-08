@@ -1,10 +1,118 @@
 // ============================================================
-// MAP — calibration persistence, coordinate transforms, rendering
+// MAP — calibration, transforms, tiled rendering + optional server upload
 // ============================================================
 
-// --- Map image ---
-// onload is assigned in canvas.js after draw() is defined
-const mapImg = new Image();
+const MAP_TILE_SIZE = 256;
+const MAP_TILE_MAX_Z_DEFAULT = 5; // 6144 / 256 → ceil(log2(24)) = 5
+const MAP_TILE_BASE_DEFAULT = 'assets/tiles';
+
+function mapApiBase() {
+  const pathName = location.pathname || '/';
+  if (pathName.includes('/dev-tools')) {
+    const base = pathName.slice(0, pathName.indexOf('/dev-tools') + '/dev-tools'.length);
+    return `${base.replace(/\/$/, '')}/api`;
+  }
+  return '/api';
+}
+
+
+const mapImg = new Image(); // low-res overview (never the 29MB full PNG by default)
+let mapTilesReady = false;
+let mapMetaReady = false; // wait for manifest/API so we don't double-fetch tiles
+let mapTileMeta = {
+  tileSize: MAP_TILE_SIZE,
+  maxZoom: MAP_TILE_MAX_Z_DEFAULT,
+  mapWidth: MAP_SIZE_PX,
+  mapHeight: MAP_SIZE_PX,
+  tilesUrl: MAP_TILE_BASE_DEFAULT,
+  version: 0,
+};
+const _tileCache = new Map(); // "z/x/y" → Image | 'loading' | 'error'
+let _tileDrawScheduled = false;
+let _mapPanelOpen = false;
+
+function tilesBaseUrl() {
+  const base = mapTileMeta.tilesUrl || MAP_TILE_BASE_DEFAULT;
+  const v = mapTileMeta.version ? `?v=${mapTileMeta.version}` : '';
+  // version query only on overview/meta; tile files use path + optional cache buster below
+  return base.replace(/\/$/, '');
+}
+
+function tileKey(z, x, y) {
+  return `${mapTileMeta.version || 0}/${z}/${x}/${y}`;
+}
+
+function tileUrl(z, x, y) {
+  const v = mapTileMeta.version ? `?v=${mapTileMeta.version}` : '';
+  return `${tilesBaseUrl()}/${z}/${x}/${y}.png${v}`;
+}
+
+function overviewUrl() {
+  const v = mapTileMeta.version ? `?v=${mapTileMeta.version}` : '';
+  return `${tilesBaseUrl()}/overview.png${v}`;
+}
+
+function levelSizeAtZoom(z) {
+  const maxZ = mapTileMeta.maxZoom ?? MAP_TILE_MAX_Z_DEFAULT;
+  const mapW = mapTileMeta.mapWidth || MAP_SIZE_PX;
+  return Math.ceil(mapW / Math.pow(2, maxZ - z));
+}
+
+function requestTile(z, x, y) {
+  const key = tileKey(z, x, y);
+  const cached = _tileCache.get(key);
+  if (cached instanceof Image) {
+    return cached.complete && cached.naturalWidth > 0 ? cached : null;
+  }
+  if (cached === 'loading' || cached === 'error') return null;
+
+  _tileCache.set(key, 'loading');
+  const img = new Image();
+  img.decoding = 'async';
+  img.onload = () => {
+    _tileCache.set(key, img);
+    scheduleTileRedraw();
+  };
+  img.onerror = () => {
+    _tileCache.set(key, 'error');
+  };
+  img.src = tileUrl(z, x, y);
+  return null;
+}
+
+function scheduleTileRedraw() {
+  if (_tileDrawScheduled) return;
+  _tileDrawScheduled = true;
+  requestAnimationFrame(() => {
+    _tileDrawScheduled = false;
+    if (typeof draw === 'function') draw();
+  });
+}
+
+function chooseTileZoom(mapScreenW) {
+  const maxZ = mapTileMeta.maxZoom ?? MAP_TILE_MAX_Z_DEFAULT;
+  const mapW = mapTileMeta.mapWidth || MAP_SIZE_PX;
+  const target = Math.max(1, mapScreenW);
+  let z = Math.round(maxZ - Math.log2(mapW / target));
+  if (!Number.isFinite(z)) z = 0;
+  return Math.max(0, Math.min(maxZ, z));
+}
+
+function mapImageCornersScreen() {
+  const tlGame = mapPxToGame(-MAP_HALF, MAP_HALF);
+  const brGame = mapPxToGame(MAP_HALF, -MAP_HALF);
+  const tl = worldToScreen(tlGame.x, tlGame.y);
+  const br = worldToScreen(brGame.x, brGame.y);
+  return { tl, br, w: br.x - tl.x, h: br.y - tl.y };
+}
+
+function imagePxToScreen(ix, iy, corners) {
+  const { tl, w, h } = corners;
+  return {
+    x: tl.x + (ix / MAP_SIZE_PX) * w,
+    y: tl.y + (iy / MAP_SIZE_PX) * h,
+  };
+}
 
 // --- Calibration ---
 function defaultCal() {
@@ -27,7 +135,6 @@ let mapCal = loadMapCal();
 
 // --- Coordinate transforms ---
 
-// game coord → map pixel from centre (Y up in both systems)
 function gameToMapPx(gx, gy) {
   return {
     x: gx * mapCal.scaleX + mapCal.offsetX,
@@ -35,7 +142,6 @@ function gameToMapPx(gx, gy) {
   };
 }
 
-// map pixel from centre → game coord
 function mapPxToGame(mx, my) {
   return {
     x: (mx - mapCal.offsetX) / mapCal.scaleX,
@@ -43,7 +149,6 @@ function mapPxToGame(mx, my) {
   };
 }
 
-// world → canvas screen
 function worldToScreen(wx, wy) {
   return {
     x: (wx - viewX) * viewScale,
@@ -51,7 +156,6 @@ function worldToScreen(wx, wy) {
   };
 }
 
-// canvas screen → world
 function screenToWorld(sx, sy) {
   return {
     x: sx / viewScale + viewX,
@@ -59,7 +163,6 @@ function screenToWorld(sx, sy) {
   };
 }
 
-// canvas screen → map pixel from centre
 function screenToMapPx(sx, sy) {
   const tlGame = mapPxToGame(-MAP_HALF,  MAP_HALF);
   const brGame = mapPxToGame( MAP_HALF, -MAP_HALF);
@@ -76,17 +179,92 @@ function screenToMapPx(sx, sy) {
 // --- Rendering ---
 
 function drawMap() {
-  const tlGame = mapPxToGame(-MAP_HALF,  MAP_HALF);
-  const brGame = mapPxToGame( MAP_HALF, -MAP_HALF);
-  const tl = worldToScreen(tlGame.x, tlGame.y);
-  const br = worldToScreen(brGame.x, brGame.y);
-  const w  = br.x - tl.x;
-  const h  = br.y - tl.y;
+  const corners = mapImageCornersScreen();
+  const { tl, w, h } = corners;
 
-  ctx.drawImage(mapImg, tl.x, tl.y, w, h);
+  if (mapImg.complete && mapImg.naturalWidth > 0) {
+    ctx.drawImage(mapImg, tl.x, tl.y, w, h);
+  } else {
+    ctx.fillStyle = '#0c0c10';
+    ctx.fillRect(tl.x, tl.y, w, h);
+  }
+
+  // Skip tile requests until meta/manifest resolved (avoids version-0 then version-N refetch)
+  if (mapMetaReady) drawVisibleTiles(corners);
+
   ctx.fillStyle = 'rgba(0,0,0,0.26)';
   ctx.fillRect(tl.x, tl.y, w, h);
   drawOriginCross();
+}
+
+function drawVisibleTiles(corners) {
+  const { w, h } = corners;
+  if (!(w > 1 && h > 1)) return;
+
+  const tileSize = mapTileMeta.tileSize || MAP_TILE_SIZE;
+  const z = chooseTileZoom(Math.abs(w));
+  const levelSize = levelSizeAtZoom(z);
+  const scale = levelSize / MAP_SIZE_PX;
+  const cols = Math.ceil(levelSize / tileSize);
+  const rows = Math.ceil(levelSize / tileSize);
+
+  const samples = [
+    screenToMapPx(0, 0),
+    screenToMapPx(canvas.width, 0),
+    screenToMapPx(0, canvas.height),
+    screenToMapPx(canvas.width, canvas.height),
+  ];
+  let minIx = Infinity, maxIx = -Infinity, minIy = Infinity, maxIy = -Infinity;
+  for (const s of samples) {
+    const ix = s.mpx + MAP_HALF;
+    const iy = MAP_HALF - s.mpy;
+    if (ix < minIx) minIx = ix;
+    if (ix > maxIx) maxIx = ix;
+    if (iy < minIy) minIy = iy;
+    if (iy > maxIy) maxIy = iy;
+  }
+
+  const pad = tileSize / scale;
+  minIx = Math.max(0, minIx - pad);
+  maxIx = Math.min(MAP_SIZE_PX, maxIx + pad);
+  minIy = Math.max(0, minIy - pad);
+  maxIy = Math.min(MAP_SIZE_PX, maxIy + pad);
+
+  let x0 = Math.floor((minIx * scale) / tileSize);
+  let x1 = Math.floor(((maxIx * scale) - 1e-6) / tileSize);
+  let y0 = Math.floor((minIy * scale) / tileSize);
+  let y1 = Math.floor(((maxIy * scale) - 1e-6) / tileSize);
+  x0 = Math.max(0, Math.min(cols - 1, x0));
+  x1 = Math.max(0, Math.min(cols - 1, x1));
+  y0 = Math.max(0, Math.min(rows - 1, y0));
+  y1 = Math.max(0, Math.min(rows - 1, y1));
+
+  for (let tx = x0; tx <= x1; tx++) {
+    for (let ty = y0; ty <= y1; ty++) {
+      const img = requestTile(z, tx, ty);
+      if (!img) continue;
+
+      const lx = tx * tileSize;
+      const ly = ty * tileSize;
+      const srcW = Math.min(tileSize, levelSize - lx);
+      const srcH = Math.min(tileSize, levelSize - ly);
+      if (srcW <= 0 || srcH <= 0) continue;
+
+      const ix0 = lx / scale;
+      const iy0 = ly / scale;
+      const ix1 = (lx + srcW) / scale;
+      const iy1 = (ly + srcH) / scale;
+      const p0 = imagePxToScreen(ix0, iy0, corners);
+      const p1 = imagePxToScreen(ix1, iy1, corners);
+      const dw = p1.x - p0.x, dh = p1.y - p0.y;
+      // Prefer crisp pixels when a source tile is magnified on screen
+      const magnified = Math.abs(dw) > srcW * 1.15 || Math.abs(dh) > srcH * 1.15;
+      ctx.imageSmoothingEnabled = !magnified;
+      if (!magnified) ctx.imageSmoothingQuality = 'high';
+      ctx.drawImage(img, 0, 0, srcW, srcH, p0.x, p0.y, dw, dh);
+      ctx.imageSmoothingEnabled = true;
+    }
+  }
 }
 
 function drawOriginCross() {
@@ -258,4 +436,213 @@ function drawCalPoints() {
       ctx.fillText(`(${pt.gameX}, ${pt.gameY})`, s.x + 9, s.y + 7);
     }
   });
+}
+
+// --- Map load / server API ---
+
+function updateMapPanelStatus(extra) {
+  const el = document.getElementById('map-panel-status');
+  if (!el) return;
+  const m = mapTileMeta;
+  const bits = [
+    `тайлы: ${m.tilesUrl || MAP_TILE_BASE_DEFAULT}`,
+    `${m.mapWidth || MAP_SIZE_PX}×${m.mapHeight || MAP_SIZE_PX}`,
+    `maxZ=${m.maxZoom ?? MAP_TILE_MAX_Z_DEFAULT}`,
+    m.version ? `v${m.version}` : null,
+    extra || null,
+  ].filter(Boolean);
+  el.textContent = bits.join(' · ');
+}
+
+function applyOverviewSrc(src) {
+  mapImg.onload = () => {
+    mapTilesReady = true;
+    updateMapPanelStatus('overview OK');
+    draw();
+  };
+  mapImg.onerror = () => {
+    // Fall back to full Map.png only if overview/tiles missing
+    if (src !== DEFAULT_MAP_SRC) {
+      updateMapPanelStatus('overview нет → Map.png');
+      mapImg.onload = () => { mapTilesReady = true; draw(); };
+      mapImg.onerror = () => {
+        mapTilesReady = true;
+        updateMapPanelStatus('карта не загрузилась');
+        draw();
+      };
+      mapImg.src = DEFAULT_MAP_SRC;
+      return;
+    }
+    mapTilesReady = true;
+    updateMapPanelStatus('карта не загрузилась');
+    draw();
+  };
+  mapImg.src = src;
+}
+
+function clearTileCache() {
+  _tileCache.clear();
+}
+
+async function fetchMapMeta() {
+  try {
+    const res = await fetch(`${mapApiBase()}/map/meta`, { cache: 'no-store' });
+    if (!res.ok) return null;
+    const data = await res.json();
+    if (!data?.ok) return null;
+    return data;
+  } catch {
+    return null;
+  }
+}
+
+async function loadLocalTileManifest() {
+  try {
+    const res = await fetch(`${MAP_TILE_BASE_DEFAULT}/manifest.json`, { cache: 'no-store' });
+    if (!res.ok) return null;
+    return await res.json();
+  } catch {
+    return null;
+  }
+}
+
+async function initMapImage() {
+  updateMapPanelStatus('загрузка…');
+  mapMetaReady = false;
+  const api = await fetchMapMeta();
+  if (api?.meta) {
+    mapTileMeta = {
+      tileSize: api.meta.tileSize || MAP_TILE_SIZE,
+      maxZoom: api.meta.maxZoom ?? MAP_TILE_MAX_Z_DEFAULT,
+      mapWidth: api.meta.mapWidth || MAP_SIZE_PX,
+      mapHeight: api.meta.mapHeight || MAP_SIZE_PX,
+      tilesUrl: api.meta.tilesUrl || MAP_TILE_BASE_DEFAULT,
+      version: api.meta.version || 0,
+    };
+    if (api.hasTiles) {
+      clearTileCache();
+      mapMetaReady = true;
+      applyOverviewSrc(overviewUrl());
+      return;
+    }
+  }
+
+  const local = await loadLocalTileManifest();
+  if (local) {
+    mapTileMeta = {
+      tileSize: local.tileSize || MAP_TILE_SIZE,
+      maxZoom: local.maxZoom ?? MAP_TILE_MAX_Z_DEFAULT,
+      mapWidth: local.mapWidth || MAP_SIZE_PX,
+      mapHeight: local.mapHeight || MAP_SIZE_PX,
+      tilesUrl: MAP_TILE_BASE_DEFAULT,
+      version: local.version || 0,
+    };
+    clearTileCache();
+    mapMetaReady = true;
+    applyOverviewSrc(overviewUrl());
+    return;
+  }
+
+  // No tiles yet — still try overview path, then Map.png fallback
+  mapMetaReady = true;
+  applyOverviewSrc(overviewUrl());
+}
+
+function toggleMapPanel() {
+  const panel = document.getElementById('map-panel');
+  const btn = document.getElementById('btn-map-panel');
+  if (!panel) return;
+  _mapPanelOpen = !_mapPanelOpen;
+  panel.classList.toggle('open', _mapPanelOpen);
+  btn?.classList.toggle('active', _mapPanelOpen);
+  if (_mapPanelOpen) {
+    document.getElementById('cal-panel')?.classList.remove('open');
+    if (mode === 'cal') setMode('pan');
+    const tokenInput = document.getElementById('map-upload-token');
+    if (tokenInput && !tokenInput.value) {
+      try { tokenInput.value = localStorage.getItem('tl_map_upload_token') || ''; } catch {}
+    }
+    fetchMapMeta().then(() => updateMapPanelStatus());
+    updateMapPanelStatus();
+  }
+}
+
+function mapUploadHeaders() {
+  const input = document.getElementById('map-upload-token');
+  let token = input?.value?.trim() || '';
+  if (token) {
+    try { localStorage.setItem('tl_map_upload_token', token); } catch {}
+  } else {
+    try { token = localStorage.getItem('tl_map_upload_token') || ''; } catch {}
+    if (token && input && !input.value) input.value = token;
+  }
+  const h = {};
+  if (token) h['x-upload-token'] = token;
+  return h;
+}
+
+async function onServerMapFileSelected(input) {
+  const file = input?.files?.[0];
+  if (!file) return;
+  updateMapPanelStatus(`загрузка ${file.name}…`);
+  showToast?.('Загрузка карты на сервер…');
+  const fd = new FormData();
+  fd.append('map', file);
+  try {
+    const res = await fetch(`${mapApiBase()}/map/upload`, {
+      method: 'POST',
+      headers: mapUploadHeaders(),
+      body: fd,
+    });
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok || !data.ok) throw new Error(data.error || `HTTP ${res.status}`);
+    mapTileMeta = {
+      tileSize: data.meta.tileSize || MAP_TILE_SIZE,
+      maxZoom: data.meta.maxZoom ?? MAP_TILE_MAX_Z_DEFAULT,
+      mapWidth: data.meta.mapWidth || MAP_SIZE_PX,
+      mapHeight: data.meta.mapHeight || MAP_SIZE_PX,
+      tilesUrl: data.meta.tilesUrl || MAP_TILE_BASE_DEFAULT,
+      version: data.meta.version || Date.now(),
+    };
+    clearTileCache();
+    applyOverviewSrc(overviewUrl());
+    showToast?.('Тайлы готовы');
+    updateMapPanelStatus('загружено');
+  } catch (err) {
+    console.error(err);
+    showToast?.(err.message || 'Ошибка загрузки');
+    updateMapPanelStatus(err.message || 'ошибка');
+  } finally {
+    input.value = '';
+  }
+}
+
+async function rebuildServerTiles() {
+  updateMapPanelStatus('пересборка тайлов…');
+  showToast?.('Пересборка тайлов…');
+  try {
+    const res = await fetch(`${mapApiBase()}/map/rebuild`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', ...mapUploadHeaders() },
+      body: '{}',
+    });
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok || !data.ok) throw new Error(data.error || `HTTP ${res.status}`);
+    mapTileMeta = {
+      tileSize: data.meta.tileSize || MAP_TILE_SIZE,
+      maxZoom: data.meta.maxZoom ?? MAP_TILE_MAX_Z_DEFAULT,
+      mapWidth: data.meta.mapWidth || MAP_SIZE_PX,
+      mapHeight: data.meta.mapHeight || MAP_SIZE_PX,
+      tilesUrl: data.meta.tilesUrl || MAP_TILE_BASE_DEFAULT,
+      version: data.meta.version || Date.now(),
+    };
+    clearTileCache();
+    applyOverviewSrc(overviewUrl());
+    showToast?.('Тайлы пересобраны');
+    updateMapPanelStatus('пересобрано');
+  } catch (err) {
+    console.error(err);
+    showToast?.(err.message || 'Ошибка пересборки');
+    updateMapPanelStatus(err.message || 'ошибка');
+  }
 }

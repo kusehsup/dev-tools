@@ -1,0 +1,19 @@
+[Unit]
+Description=Hassle Dev Tools map API
+After=network.target
+
+[Service]
+Type=simple
+WorkingDirectory=/var/www/dev-tools/server
+Environment=NODE_ENV=production
+Environment=PORT=3847
+Environment=DEV_TOOLS_ROOT=/var/www/dev-tools
+EnvironmentFile=-/etc/dev-tools-api.env
+ExecStart=/usr/bin/node /var/www/dev-tools/server/index.js
+Restart=on-failure
+RestartSec=3
+User=www-data
+Group=www-data
+
+[Install]
+WantedBy=multi-user.target

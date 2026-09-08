@@ -598,6 +598,52 @@ function setTerritoryType(i, type) {
   draw();
 }
 
+let _focusAnimRaf = null;
+
+function cancelFocusAnimation() {
+  if (_focusAnimRaf != null) {
+    cancelAnimationFrame(_focusAnimRaf);
+    _focusAnimRaf = null;
+  }
+}
+
+function easeInOutCubic(t) {
+  return t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
+}
+
+function animateViewportTo(targetX, targetY, targetScale, durationMs = 520) {
+  cancelFocusAnimation();
+  const startX = viewX;
+  const startY = viewY;
+  const startScale = viewScale;
+  const tScale = Math.max(0.05, Math.min(20, targetScale));
+  // Interpolate in log-space for scale so zoom feels even
+  const log0 = Math.log(startScale);
+  const log1 = Math.log(tScale);
+  const t0 = performance.now();
+
+  function frame(now) {
+    const u = Math.min(1, (now - t0) / durationMs);
+    const e = easeInOutCubic(u);
+    viewScale = Math.exp(log0 + (log1 - log0) * e);
+    // Keep the intended world focus centered while scale changes:
+    // lerp the camera corners via target viewX/Y computed for final scale.
+    viewX = startX + (targetX - startX) * e;
+    viewY = startY + (targetY - startY) * e;
+    draw();
+    if (u < 1) {
+      _focusAnimRaf = requestAnimationFrame(frame);
+    } else {
+      _focusAnimRaf = null;
+      viewScale = tScale;
+      viewX = targetX;
+      viewY = targetY;
+      draw();
+    }
+  }
+  _focusAnimRaf = requestAnimationFrame(frame);
+}
+
 function focusZone(i) {
   const z = zones[i];
   if (!z?.points?.length) {
@@ -614,13 +660,13 @@ function focusZone(i) {
   const padY = (maxY - minY) * 0.18 || 400;
   const scaleX = canvas.width  / (maxX - minX + padX * 2);
   const scaleY = canvas.height / (maxY - minY + padY * 2);
-  viewScale = Math.max(0.05, Math.min(20, Math.min(scaleX, scaleY)));
-  viewX = (minX + maxX) / 2 - canvas.width  / 2 / viewScale;
-  viewY = (minY + maxY) / 2 + canvas.height / 2 / viewScale;
+  const nextScale = Math.max(0.05, Math.min(20, Math.min(scaleX, scaleY)));
+  const nextX = (minX + maxX) / 2 - canvas.width  / 2 / nextScale;
+  const nextY = (minY + maxY) / 2 + canvas.height / 2 / nextScale;
   selectedZoneIdx = i;
   renderZoneList();
   scrollToZone(i);
-  draw();
+  animateViewportTo(nextX, nextY, nextScale);
 }
 
 function collectTerritoryExportLists() {

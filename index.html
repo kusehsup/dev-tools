@@ -136,6 +136,7 @@
 
       <div class="sep"></div>
       <button class="mode-btn cal" id="mode-cal" onclick="setMode('cal')">Калибровка</button>
+      <button class="mode-btn map-img" id="btn-map-panel" onclick="toggleMapPanel()">Карта PNG</button>
     </div>
 
     <div id="canvas-wrap">
@@ -149,6 +150,19 @@
         </button>
         <div id="cal-result"></div>
         <div id="cal-params"></div>
+      </div>
+
+      <div id="map-panel">
+        <h4>Карта на сервере</h4>
+        <p>Загрузи PNG — сервер нарежет тайлы и сохранит их глобально для всех.</p>
+        <div id="map-panel-status" class="map-panel-status">Загрузка…</div>
+        <label class="ui-label" for="map-upload-token">Токен загрузки (нужен для сохранения на сервер)</label>
+        <input class="ui-input" id="map-upload-token" type="password" placeholder="из /etc/dev-tools-api.env" autocomplete="off">
+        <input type="file" id="map-file-input" accept="image/png,.png" hidden onchange="onServerMapFileSelected(this)">
+        <div class="map-panel-actions">
+          <button class="ui-btn ui-btn-accent" onclick="document.getElementById('map-file-input').click()">Загрузить PNG на сервер</button>
+          <button class="ui-btn" onclick="rebuildServerTiles()">Пересобрать тайлы</button>
+        </div>
       </div>
     </div>
 

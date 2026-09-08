@@ -42,6 +42,8 @@ const FEATURES = {
   ROUTES_TAB: false,
 };
 
+const DEFAULT_MAP_SRC = 'assets/Map.png';
+
 // --- Viewport ---
 let viewX     = -500;
 let viewY     = -500;
@@ -80,7 +82,7 @@ let PARKING_ZONES_DATA = [];
 let territoryZonesLoaded = false;
 let TERRITORY_ZONES_DATA = { cities: [], streets: [] };
 let userZonesLoaded  = false;
-let zonesSubTab      = 'user';
+let zonesSubTab      = 'green';
 let zoneSearch       = '';
 let territoryFilter  = 'all';  // 'all' | 'city' | 'zone'
 
