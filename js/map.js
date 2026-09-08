@@ -18,6 +18,7 @@ function mapApiBase() {
 
 const mapImg = new Image(); // low-res overview (never the 29MB full PNG by default)
 let mapTilesReady = false;
+let mapMetaReady = false; // wait for manifest/API so we don't double-fetch tiles
 let mapTileMeta = {
   tileSize: MAP_TILE_SIZE,
   maxZoom: MAP_TILE_MAX_Z_DEFAULT,
@@ -188,7 +189,8 @@ function drawMap() {
     ctx.fillRect(tl.x, tl.y, w, h);
   }
 
-  drawVisibleTiles(corners);
+  // Skip tile requests until meta/manifest resolved (avoids version-0 then version-N refetch)
+  if (mapMetaReady) drawVisibleTiles(corners);
 
   ctx.fillStyle = 'rgba(0,0,0,0.26)';
   ctx.fillRect(tl.x, tl.y, w, h);
@@ -504,6 +506,7 @@ async function loadLocalTileManifest() {
 
 async function initMapImage() {
   updateMapPanelStatus('загрузка…');
+  mapMetaReady = false;
   const api = await fetchMapMeta();
   if (api?.meta) {
     mapTileMeta = {
@@ -516,6 +519,7 @@ async function initMapImage() {
     };
     if (api.hasTiles) {
       clearTileCache();
+      mapMetaReady = true;
       applyOverviewSrc(overviewUrl());
       return;
     }
@@ -532,11 +536,13 @@ async function initMapImage() {
       version: local.version || 0,
     };
     clearTileCache();
+    mapMetaReady = true;
     applyOverviewSrc(overviewUrl());
     return;
   }
 
   // No tiles yet — still try overview path, then Map.png fallback
+  mapMetaReady = true;
   applyOverviewSrc(overviewUrl());
 }
 
